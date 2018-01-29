@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`Adafruit_TLC59711`
+`adafruit_tlc59711`
 ====================================================
 
 CircuitPython module for the TLC59711 16-bit 12 channel LED PWM driver.  See
@@ -69,17 +69,12 @@ class TLC59711:
     independent channel by name (r0, g0, b0, r1, b1, etc.) as properties for
     fine-grained control.
 
-    Specify the following parameters to initialize:
-    - spi: An instance of the SPI bus connected to the chip.  The clock and
-           MOSI/outout must be set, the MISO/input is unused.
-
-    You can also specify the following optional parameters:
-    - auto_show: This is a boolean that defaults to True and indicates any
-                 change to a channel value will instantly be written to the
-                 chip.  You might wish to set this to false if you desire to
-                 perform your own atomic operations of channel values.  In that
-                 case call the show function after making updates to channel
-                 state.
+    :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.  The clock and
+        MOSI/outout must be set, the MISO/input is unused.
+    :param bool auto_show: This is a boolean that defaults to True and indicates any
+        change to a channel value will instantly be written to the chip. You might wish to
+        set this to false if you desire to perform your own atomic operations of channel
+        values. In that case call the show function after making updates to channel state.
     """
 
     class _GS_Value:
@@ -202,16 +197,16 @@ class TLC59711:
             self._spi.unlock()
 
     def show(self):
-        """Write out the current LED PWM state to the chip.  This is only
-        necessary if auto_show was set to false in the initializer.
+        """Write out the current LED PWM state to the chip.  This is only necessary if
+           auto_show was set to false in the initializer.
         """
         self._write()
 
     # Define properties for global brightness control channels.
     @property
     def red_brightness(self):
-        """Get and set the red brightness for all channels (i.e. R0, R1, R2,
-        and R3).  This is a 7-bit value from 0-127.
+        """The red brightness for all channels (i.e. R0, R1, R2, and R3).  This is a 7-bit
+           value from 0-127.
         """
         return self._bcr
 
@@ -224,8 +219,8 @@ class TLC59711:
 
     @property
     def green_brightness(self):
-        """Get and set the green brightness for all channels (i.e. G0, G1,
-        G2, and G3).  This is a 7-bit value from 0-127.
+        """The green brightness for all channels (i.e. G0, G1, G2, and G3).  This is a
+           7-bit value from 0-127.
         """
         return self._bcg
 
@@ -238,8 +233,8 @@ class TLC59711:
 
     @property
     def blue_brightness(self):
-        """Get and set the blue brightness for all channels (i.e. B0, B1,
-        B2, and B3).  This is a 7-bit value from 0-127.
+        """The blue brightness for all channels (i.e. B0, B1, B2, and B3).  This is a 7-bit
+           value from 0-127.
         """
         return self._bcb
 
@@ -258,7 +253,7 @@ class TLC59711:
 
     def __getitem__(self, key):
         """Retrieve the R, G, B values for the provided channel as a
-        3-tuple. Each value is a 16-bit number from 0-65535.
+           3-tuple. Each value is a 16-bit number from 0-65535.
         """
         if key == 0:
             return (self.r0, self.g0, self.b0)
@@ -273,7 +268,7 @@ class TLC59711:
 
     def __setitem__(self, key, val):
         """Set the R, G, B values for the provided channel.  Specify a
-        3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
+           3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
         """
         assert 0 <= key <= 3  # Do this check here instead of later to
                               # prevent accidentally keeping auto_show
