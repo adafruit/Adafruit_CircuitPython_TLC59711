@@ -59,6 +59,7 @@ def _shift_in(target_byte, val):
     target_byte <<= 1
     if val:
         target_byte |= 0x01
+    return target_byte
 
 
 class TLC59711:
@@ -147,10 +148,11 @@ class TLC59711:
         # the auto_show property and instead you must manually call show
         # after changing them (reduces the need to make frivolous
         # memory-hogging properties).
-        self.outtmg = False
+        # Set OUTTMG, TMGRST, and DSPRPT to on like the Arduino library.
+        self.outtmg = True
         self.extgclk = False
-        self.tmgrst = False
-        self.dsprpt = False
+        self.tmgrst = True
+        self.dsprpt = True
         self.blank = False
 
     def _write(self):
@@ -166,14 +168,14 @@ class TLC59711:
             self._shift_reg[0] = 0x25  # 0x25 in top 6 bits initiates write.
             # Lower two bits control OUTTMG and EXTGCLK bits, set them
             # as appropriate.
-            _shift_in(self._shift_reg[0], self.outtmg)
-            _shift_in(self._shift_reg[0], self.extgclk)
+            self._shift_reg[0] = _shift_in(self._shift_reg[0], self.outtmg)
+            self._shift_reg[0] = _shift_in(self._shift_reg[0], self.extgclk)
             # Next byte contains remaining function control state and start of
             # brightness control bits.
             self._shift_reg[1] = 0x00
-            _shift_in(self._shift_reg[1], self.tmgrst)
-            _shift_in(self._shift_reg[1], self.dsprpt)
-            _shift_in(self._shift_reg[1], self.blank)
+            self._shift_reg[1] = _shift_in(self._shift_reg[1], self.tmgrst)
+            self._shift_reg[1] = _shift_in(self._shift_reg[1], self.dsprpt)
+            self._shift_reg[1] = _shift_in(self._shift_reg[1], self.blank)
             # Top 5 bits from BC blue channel.
             self._shift_reg[1] <<= 5
             self._shift_reg[1] |= (self._bcb >> 2) & 0b11111
