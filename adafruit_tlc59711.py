@@ -27,6 +27,19 @@ CircuitPython module for the TLC59711 16-bit 12 channel LED PWM driver.  See
 examples/simpletest.py for a demo of the usage.
 
 * Author(s): Tony DiCola
+
+Implementation Notes
+--------------------
+
+**Hardware:**
+
+* Adafruit `12-Channel 16-bit PWM LED Driver - SPI Interface - TLC59711
+  <https://www.adafruit.com/product/1455>`_ (Product ID: 1455)
+
+**Software and Dependencies:**
+
+* Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
+  https://github.com/adafruit/circuitpython/releases
 """
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
