@@ -267,6 +267,8 @@ class TLC59711:
         return 4  # Always 4 RGB channels on the chip.
 
     def __getitem__(self, key):
+        # pylint: disable=no-else-return
+        # Disable should be removed when refactor can be tested
         """Retrieve the R, G, B values for the provided channel as a
            3-tuple. Each value is a 16-bit number from 0-65535.
         """
