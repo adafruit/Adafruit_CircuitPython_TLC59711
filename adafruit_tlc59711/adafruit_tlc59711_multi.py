@@ -190,13 +190,13 @@ class TLC59711:
         def __get__(self, obj, obj_type):
             # Grab the 16-bit value at the offset for this channel.
             return (obj._buffer[self._byte_offset] << 8) | \
-                    obj._buffer[self._byte_offset+1]
+                obj._buffer[self._byte_offset + 1]
 
         def __set__(self, obj, val):
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= val <= 65535
             obj._buffer[self._byte_offset] = (val >> 8) & 0xFF
-            obj._buffer[self._byte_offset+1] = val & 0xFF
+            obj._buffer[self._byte_offset + 1] = val & 0xFF
 
     class _FC_bits(ctypes.LittleEndianStructure):
         """
@@ -268,7 +268,7 @@ class TLC59711:
         # This device is just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
-        self._buffer = bytearray(CHIP_BUFFER_LENGTH * self.chip_count)
+        self._buffer = bytearray(self.CHIP_BUFFER_LENGTH * self.chip_count)
 
         # Initialize the brightness channel values to max (these are 7-bit
         # values).
@@ -298,7 +298,7 @@ class TLC59711:
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            buffer_start = chip_index * CHIP_BUFFER_LENGTH
+            buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
             self._buffer[buffer_start] = 0x25
 
             self._chip_set_FunctionControl(chip_index)
@@ -313,11 +313,9 @@ class TLC59711:
 
         :param int chip_index: Index of Chip to set.
         """
-        buffer_start = (
-            (chip_index * CHIP_BUFFER_LENGTH) +
-            CHIP_BUFFER_FC_OFFSET
-        )
-        fc = _FC()
+        buffer_start = (chip_index * self.CHIP_BUFFER_LENGTH) + \
+            self.CHIP_BUFFER_FC_OFFSET
+        fc = self._FC()
         fc.asByte = self._buffer[buffer_start]
 
     def update_fc(self):
@@ -341,9 +339,9 @@ class TLC59711:
         :param int bcb: 7-bit value from 0-127 (default=127)
         """
         buffer_start = (
-            (chip_index * CHIP_BUFFER_LENGTH) + CHIP_BUFFER_BC_OFFSET
+            (chip_index * self.CHIP_BUFFER_LENGTH) + self.CHIP_BUFFER_BC_OFFSET
         )
-        bc = _BC()
+        bc = self._BC()
         bc.asByte = self._buffer[buffer_start]
 
     def _write(self):
@@ -457,8 +455,8 @@ class TLC59711:
 
         Each value is a 16-bit number from 0-65535.
         """
-        if 0 < key > (self.pixel_count-1):
-            raw_data_start = 14*(key / 12) + key % 12
+        if 0 < key > (self.pixel_count - 1):
+            raw_data_start = 14 * (key / 12) + key % 12
             self._buffer[raw_data_start]
             return (self.r0, self.g0, self.b0)
         else:
