@@ -663,7 +663,7 @@ class TLC59711Multi:
         )
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
-        assert 0 <= value <= 65535
+        # assert 0 <= value <= 65535
         # print("buffer_start", buffer_start, "value", value)
         # self._debug_print_buffer()
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
@@ -765,6 +765,12 @@ class TLC59711Multi:
             # value[0] = self._convert_if_float(value[0])
             # value[1] = self._convert_if_float(value[1])
             # value[2] = self._convert_if_float(value[2])
+
+            # check if values are in range
+            # assert 0 <= value[0] <= 65535
+            # assert 0 <= value[1] <= 65535
+            # assert 0 <= value[2] <= 65535
+
             # optimized by inlining code :
             # check if we have float values
             if isinstance(value[0], float):
@@ -772,23 +778,25 @@ class TLC59711Multi:
                 assert 0 <= value[0] <= 1
                 # convert to 16bit value
                 value[0] = int(value[0] * 65535)
+            else:
+                assert 0 <= value[0] <= 65535
             if isinstance(value[1], float):
                 # check if value is in range
                 assert 0 <= value[1] <= 1
                 # convert to 16bit value
                 value[1] = int(value[1] * 65535)
+            else:
+                assert 0 <= value[1] <= 65535
             if isinstance(value[2], float):
                 # check if value is in range
                 assert 0 <= value[2] <= 1
                 # convert to 16bit value
                 value[2] = int(value[2] * 65535)
+            else:
+                assert 0 <= value[2] <= 65535
 
             # print("value", value)
 
-            # check if values are in range
-            assert 0 <= value[0] <= 65535
-            assert 0 <= value[1] <= 65535
-            assert 0 <= value[2] <= 65535
             # update buffer
             # print("key", key, "value", value)
             # we change channel order here:
