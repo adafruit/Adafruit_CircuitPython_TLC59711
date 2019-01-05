@@ -692,6 +692,51 @@ class TLC59711Multi:
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value & 0xFF
 
+    def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
+        """
+        Set the value for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int value_r: 0..65535
+        :param int value_g: 0..65535
+        :param int value_b: 0..65535
+        """
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel_16bit_color(self, pixel_index, value):
+        """
+        Set color for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+        its a little bit slower as `set_pixel_16bit_value`
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int 3-tuple of R, G, B;  0..65535
+        """
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[2] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[1] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[0] & 0xFF
+
     # channel access
     def set_channel(self, channel_index, value):
         """
@@ -762,6 +807,12 @@ class TLC59711Multi:
             # repr(value)
             # print("check length..")
             assert len(value) == 3
+            # tested:
+            # splitting up into variables to not need the list..
+            # this is about 0.25ms slower!
+            # value_r = value[0]
+            # value_g = value[1]
+            # value_b = value[2]
 
             # check if we have float values
             # value[0] = self._convert_if_float(value[0])

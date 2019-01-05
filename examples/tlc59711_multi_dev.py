@@ -140,6 +140,16 @@ def time_measurement_pixels_set():
     time_measurement_call(_test, loop_count)
 
     def _test():
+        pixels.set_pixel_16bit_value(3, 500, 40500, 1000)
+    print("'pixels.set_pixel_16bit_value(3, 500, 40500, 1000)'")
+    time_measurement_call(_test, loop_count)
+
+    def _test():
+        pixels.set_pixel_16bit_color(3, (500, 40500, 1000))
+    print("'pixels.set_pixel_16bit_color(3, (500, 40500, 1000))'")
+    time_measurement_call(_test, loop_count)
+
+    def _test():
         pixels[12] = (0.5, 0.5, 0.5)
     print("'pixels[12] = (0.5, 0.5, 0.5)'")
     time_measurement_call(_test, loop_count)
