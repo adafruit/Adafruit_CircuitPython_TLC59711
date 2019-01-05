@@ -192,28 +192,6 @@ class TLC59711Multi:
         # Return the result, we're done.
         return v
 
-    class _GS_Value:
-        # Internal decorator to simplify exposing each 16-bit LED PWM channel.
-        # These will get/set the appropriate bytes in the shift register with
-        # the specified values.
-
-        def __init__(self, byte_offset):
-            # Keep track of the byte within the shift register where this
-            # 16-bit value starts.  Luckily these are all aligned on byte
-            # boundaries.  Note the byte order is big endian (MSB first).
-            self._byte_offset = byte_offset
-
-        def __get__(self, obj, obj_type):
-            # Grab the 16-bit value at the offset for this channel.
-            return (obj._buffer[self._byte_offset] << 8) | \
-                obj._buffer[self._byte_offset + 1]
-
-        def __set__(self, obj, val):
-            # Set the 16-bit value at the offset for this channel.
-            assert 0 <= val <= 65535
-            obj._buffer[self._byte_offset] = (val >> 8) & 0xFF
-            obj._buffer[self._byte_offset + 1] = val & 0xFF
-
     ##########################################
     # class _BC():
     """
@@ -646,7 +624,11 @@ class TLC59711Multi:
         )
 
     def _set_32bit_value_in_buffer(self, buffer_start, value):
-        assert 0 <= value <= 0xFFFFFFFF
+        if not 0 <= value <= 0xFFFFFFFF:
+            raise ValueError(
+                "value {} not in range: 0..0xFFFFFFFF"
+                "".format(value)
+            )
         # print("buffer_start", buffer_start, "value", value)
         # self._debug_print_buffer()
         self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
@@ -661,7 +643,11 @@ class TLC59711Multi:
         )
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
-        # assert 0 <= value <= 65535
+        # if not 0 <= value <= 65535:
+        #     raise ValueError(
+        #         "value {} not in range: 0..65535"
+        #         "".format(value)
+        #     )
         # print("buffer_start", buffer_start, "value", value)
         # self._debug_print_buffer()
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
@@ -671,7 +657,11 @@ class TLC59711Multi:
     def _convert_01_float_to_16bit_integer(value):
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
         # check if value is in range
-        assert 0 <= value <= 1
+        if not 0.0 <= value[0] <= 1.0:
+            raise ValueError(
+                "value[0] {} not in range: 0..1"
+                "".format(value[0])
+            )
         # convert to 16bit value
         return int(value * 65535)
 
@@ -851,35 +841,70 @@ class TLC59711Multi:
             # value[0] = self._convert_if_float(value[0])
             # value[1] = self._convert_if_float(value[1])
             # value[2] = self._convert_if_float(value[2])
-
-            # check if values are in range
-            # assert 0 <= value[0] <= 65535
-            # assert 0 <= value[1] <= 65535
-            # assert 0 <= value[2] <= 65535
+            # check range
+            # if not 0 <= value[0] <= 65535:
+            #     raise ValueError(
+            #         "value[0] {} not in range: 0..65535"
+            #         "".format(value[0])
+            #     )
+            # if not 0 <= value[1] <= 65535:
+            #     raise ValueError(
+            #         "value[1] {} not in range: 0..65535"
+            #         "".format(value[1])
+            #     )
+            # if not 0 <= value[2] <= 65535:
+            #     raise ValueError(
+            #         "value[2] {} not in range: 0..65535"
+            #         "".format(value[2])
+            #     )
 
             # optimize:
             # check if we have float values
             if isinstance(value[0], float):
                 # check if value is in range
-                assert 0 <= value[0] <= 1
+                if not 0.0 <= value[0] <= 1.0:
+                    raise ValueError(
+                        "value[0] {} not in range: 0..1"
+                        "".format(value[0])
+                    )
                 # convert to 16bit value
                 value[0] = int(value[0] * 65535)
             else:
-                assert 0 <= value[0] <= 65535
+                if not 0 <= value[0] <= 65535:
+                    raise ValueError(
+                        "value[0] {} not in range: 0..65535"
+                        "".format(value[0])
+                    )
             if isinstance(value[1], float):
                 # check if value is in range
-                assert 0 <= value[1] <= 1
+                if not 0.0 <= value[1] <= 1.0:
+                    raise ValueError(
+                        "value[1] {} not in range: 0..1"
+                        "".format(value[1])
+                    )
                 # convert to 16bit value
                 value[1] = int(value[1] * 65535)
             else:
-                assert 0 <= value[1] <= 65535
+                if not 0 <= value[1] <= 65535:
+                    raise ValueError(
+                        "value[1] {} not in range: 0..65535"
+                        "".format(value[1])
+                    )
             if isinstance(value[2], float):
                 # check if value is in range
-                assert 0 <= value[2] <= 1
+                if not 0.0 <= value[2] <= 1.0:
+                    raise ValueError(
+                        "value[2] {} not in range: 0..1"
+                        "".format(value[2])
+                    )
                 # convert to 16bit value
                 value[2] = int(value[2] * 65535)
             else:
-                assert 0 <= value[2] <= 65535
+                if not 0 <= value[2] <= 65535:
+                    raise ValueError(
+                        "value[2] {} not in range: 0..65535"
+                        "".format(value[2])
+                    )
 
             # print("value", value)
 
@@ -960,7 +985,10 @@ class TLC59711Multi:
         """
         if 0 <= channel_index < (self.channel_count):
             # check if values are in range
-            assert 0 <= value <= 65535
+            if not 0 <= value <= 65535:
+                raise ValueError(
+                    "value {} not in range: 0..65535"
+                )
             # temp = channel_index
             # we change channel order here:
             # buffer channel order is blue, green, red
@@ -1019,87 +1047,65 @@ class TLC59711Multi:
         :param int key: 0..(pixel_count)
         :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
+        # for a more detailed version with all the debugging code and
+        # comments look at set_pixel
         if 0 <= key < self.pixel_count:
-            # print("value", value)
             # convert to list
             value = list(value)
-            # print("value", value)
-            # print("rep:")
-            # repr(value)
-            # print("check length..")
+
             if len(value) != self.COLORS_PER_PIXEL:
                 raise IndexError(
                     "length of value {} does not match COLORS_PER_PIXEL (= {})"
                     "".format(len(value), self.COLORS_PER_PIXEL)
                 )
-            # tested:
-            # splitting up into variables to not need the list..
-            # this is about 0.25ms slower!
-            # value_r = value[0]
-            # value_g = value[1]
-            # value_b = value[2]
 
-            # check if we have float values
-            # value[0] = self._convert_if_float(value[0])
-            # value[1] = self._convert_if_float(value[1])
-            # value[2] = self._convert_if_float(value[2])
-
-            # check if values are in range
-            # assert 0 <= value[0] <= 65535
-            # assert 0 <= value[1] <= 65535
-            # assert 0 <= value[2] <= 65535
-
-            # optimize:
             # check if we have float values
             if isinstance(value[0], float):
                 # check if value is in range
-                assert 0 <= value[0] <= 1
+                if not 0.0 <= value[0] <= 1.0:
+                    raise ValueError(
+                        "value[0] {} not in range: 0..1"
+                        "".format(value[0])
+                    )
                 # convert to 16bit value
                 value[0] = int(value[0] * 65535)
             else:
-                assert 0 <= value[0] <= 65535
+                if not 0 <= value[0] <= 65535:
+                    raise ValueError(
+                        "value[0] {} not in range: 0..65535"
+                        "".format(value[0])
+                    )
             if isinstance(value[1], float):
-                # check if value is in range
-                assert 0 <= value[1] <= 1
-                # convert to 16bit value
+                if not 0.0 <= value[1] <= 1.0:
+                    raise ValueError(
+                        "value[1] {} not in range: 0..1"
+                        "".format(value[1])
+                    )
                 value[1] = int(value[1] * 65535)
             else:
-                assert 0 <= value[1] <= 65535
+                if not 0 <= value[1] <= 65535:
+                    raise ValueError(
+                        "value[1] {} not in range: 0..65535"
+                        "".format(value[1])
+                    )
             if isinstance(value[2], float):
-                # check if value is in range
-                assert 0 <= value[2] <= 1
-                # convert to 16bit value
+                if not 0.0 <= value[2] <= 1.0:
+                    raise ValueError(
+                        "value[2] {} not in range: 0..1"
+                        "".format(value[2])
+                    )
                 value[2] = int(value[2] * 65535)
             else:
-                assert 0 <= value[2] <= 65535
-
-            # print("value", value)
+                if not 0 <= value[2] <= 65535:
+                    raise ValueError(
+                        "value[2] {} not in range: 0..65535"
+                        "".format(value[2])
+                    )
 
             # update buffer
-            # print("key", key, "value", value)
             # we change channel order here:
             # buffer channel order is blue, green, red
             pixel_start = key * self.COLORS_PER_PIXEL
-            # self._set_channel_16bit_value(
-            #     pixel_start + 0,
-            #     value[2])
-            # self._set_channel_16bit_value(
-            #     pixel_start + 1,
-            #     value[1])
-            # self._set_channel_16bit_value(
-            #     pixel_start + 2,
-            #     value[0])
-            # optimize:
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 0],
-            #     value[2])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 1],
-            #     value[1])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 2],
-            #     value[0])
-            # optimize2
             buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
             self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[2] & 0xFF
