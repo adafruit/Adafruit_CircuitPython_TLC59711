@@ -410,6 +410,7 @@ class TLC59711Multi:
         print("init buffer..")
         self._init_buffer()
         # self._debug_print_buffer()
+        print("-> done")
 
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
@@ -417,14 +418,15 @@ class TLC59711Multi:
             # buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
             # self._buffer[buffer_start] = 0x25 << 2
 
-            self._debug_print_buffer()
+            # self._debug_print_buffer()
             self.chip_set_BCData(
                 chip_index, bcr=self._bcr, bcg=self._bcg, bcb=self._bcb)
-            self._debug_print_buffer()
+            # self._debug_print_buffer()
             self._chip_set_FunctionControl(chip_index)
-            self._debug_print_buffer()
+            # self._debug_print_buffer()
             self._chip_set_WriteCommand(chip_index)
-            self._debug_print_buffer()
+            # self._debug_print_buffer()
+        # loop end
 
     def chip_set_BCData(self, chip_index, bcr=127, bcg=127, bcb=127):
         """
@@ -513,7 +515,7 @@ class TLC59711Multi:
 
     def _write(self):
         # Write out the current state to the shift register.
-        self._debug_print_buffer()
+        # self._debug_print_buffer()
         try:
             # Lock the SPI bus and configure it for the shift register.
             while not self._spi.try_lock():
@@ -671,7 +673,8 @@ class TLC59711Multi:
 
     def _set_channel_16bit_value(self, channel_index, value):
         buffer_index = (
-            self.CHIP_BUFFER_LENGTH * (channel_index // self.CHANNEL_PER_CHIP)
+            (self.CHIP_BUFFER_LENGTH // self.BUFFER_BYTES_PER_COLOR)
+            * (channel_index // self.CHANNEL_PER_CHIP)
             + channel_index % self.CHANNEL_PER_CHIP
         )
         buffer_index *= self.BUFFER_BYTES_PER_COLOR

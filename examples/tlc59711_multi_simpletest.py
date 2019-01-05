@@ -16,7 +16,7 @@ from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
 
 
 ##########################################
-pixel_count = 4
+pixel_count = 16
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = TLC59711Multi(spi, pixel_count=pixel_count)
@@ -26,7 +26,7 @@ pixels = TLC59711Multi(spi, pixel_count=pixel_count)
 # test function
 
 offset = 0
-value_high = 65535
+value_high = 1000
 
 
 def channelcheck_update():
@@ -39,19 +39,20 @@ def channelcheck_update():
     last = offset-1
     if last < 0:
         last = pixel_count-1
-    pixels[last] = (0, 0, 0)
+    pixels[last] = (0, 0, 1)
     # pixels[offset] = (0xAAAA, 0xBBBB, 0xCCCC)
     pixels.show()
 
     offset += 1
     if offset >= pixel_count:
+        time.sleep(0.5)
         offset = 0
         print("clear")
-        set_all_black()
-        time.sleep(1)
+        # set_all_black()
+        set_all((0, 1, 0))
         pixels.show()
         print()
-        time.sleep(4)
+        time.sleep(2)
 
 
 def set_all_black():
@@ -78,7 +79,7 @@ def test_main():
 
     while True:
         channelcheck_update()
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 ##########################################
