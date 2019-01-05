@@ -29,18 +29,17 @@ offset = 0
 value_high = 1000
 
 
-def channelcheck_update():
-    """ChannelCheck."""
+def channelcheck_update_pixel():
+    """Channel check pixel."""
     global offset  #noqa
-    print("offset", offset)
+    # print("offset", offset)
 
-    pixels[offset] = (value_high, 0, 0)
+    pixels.set_pixel_16bit_value(offset, value_high, 0, 0)
     # clear last pixel
     last = offset-1
     if last < 0:
         last = pixel_count-1
-    pixels[last] = (0, 0, 1)
-    # pixels[offset] = (0xAAAA, 0xBBBB, 0xCCCC)
+    pixels.set_pixel_16bit_value(last, 0, 0, 1)
     pixels.show()
 
     offset += 1
@@ -48,37 +47,40 @@ def channelcheck_update():
         time.sleep(0.5)
         offset = 0
         print("clear")
-        # set_all_black()
-        set_all((0, 1, 0))
+        pixels.set_all_black()
+        pixels.set_pixel_all((0, 1, 0))
         pixels.show()
         print()
-        time.sleep(2)
+        time.sleep(1)
 
 
-def set_all_black():
-    """Set all Pixel to Black."""
-    set_all((0, 0, 0))
+def channelcheck_update():
+    """Channel check."""
+    global offset  #noqa
+    # print("offset", offset)
 
+    pixels.set_channel(offset, value_high)
+    # clear last set channel
+    last = offset-1
+    if last < 0:
+        last = pixels.channel_count-1
+    pixels.set_channel(last, 0)
+    pixels.show()
 
-def set_all(color):
-    """Set all Pixel to color."""
-    for i in range(pixel_count):
-        # pixels[i // 4][i % 4] = color
-        pixels[i] = color
+    offset += 1
+    if offset >= pixels.channel_count:
+        offset = 0
 
 
 def test_main():
     """Test Main."""
-    # print()
     print(42 * '*', end="")
     print(__doc__, end="")
     print(42 * '*')
-    # print()
-    # time.sleep(0.5)
-    # print(42 * '*')
-
+    print("loop:")
     while True:
-        channelcheck_update()
+        channelcheck_update_pixel()
+        # channelcheck_update()
         time.sleep(0.5)
 
 
