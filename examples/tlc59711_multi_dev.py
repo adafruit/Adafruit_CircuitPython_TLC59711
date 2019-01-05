@@ -47,14 +47,11 @@ def channelcheck_update_pixel():
 
     offset += 1
     if offset >= pixel_count:
-        # time.sleep(0.5)
+        time.sleep(0.2)
         offset = 0
-        # print("clear")
-        # pixels.set_all_black()
-        # pixels.set_pixel_all((0, 1, 0))
-        # pixels.show()
-        # print()
-        # time.sleep(2)
+        print("clear")
+        pixels.set_pixel_all((0, 1, 0))
+        pixels.show()
     #
 
 
