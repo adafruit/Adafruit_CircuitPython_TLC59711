@@ -53,6 +53,7 @@ def channelcheck_update_pixel():
         # pixels.show()
         # print()
         # time.sleep(2)
+    #
 
 
 def channelcheck_update():
@@ -215,8 +216,8 @@ def time_meassurement():
     print("meassure timming:")
     time_meassurement_pixels_show()
     time_meassurement_pixels_set()
-    time_meassurement_channel_set()
-    time_meassurement_channel_set_internal()
+    # time_meassurement_channel_set()
+    # time_meassurement_channel_set_internal()
     set_all((0, 1, 1))
 
 ##########################################
@@ -224,13 +225,12 @@ def time_meassurement():
 
 def test_main():
     """Test Main."""
-    print()
+    print(42 * '*', end="")
+    print(__doc__, end="")
     print(42 * '*')
-    print(__doc__)
-    print(42 * '*')
-    print()
-    time.sleep(0.5)
-    print(42 * '*')
+    # print()
+    # time.sleep(0.5)
+    # print(42 * '*')
 
     time_meassurement()
     time.sleep(0.5)

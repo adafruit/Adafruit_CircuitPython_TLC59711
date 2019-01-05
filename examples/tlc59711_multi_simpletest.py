@@ -69,13 +69,13 @@ def set_all(color):
 
 def test_main():
     """Test Main."""
-    print()
+    # print()
+    print(42 * '*', end="")
+    print(__doc__, end="")
     print(42 * '*')
-    print(__doc__)
-    print(42 * '*')
-    print()
-    time.sleep(0.5)
-    print(42 * '*')
+    # print()
+    # time.sleep(0.5)
+    # print(42 * '*')
 
     while True:
         channelcheck_update()

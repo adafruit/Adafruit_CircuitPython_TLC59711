@@ -760,10 +760,29 @@ class TLC59711Multi:
             # repr(value)
             # print("check length..")
             assert len(value) == 3
+
             # check if we have float values
-            value[0] = self._convert_if_float(value[0])
-            value[1] = self._convert_if_float(value[1])
-            value[2] = self._convert_if_float(value[2])
+            # value[0] = self._convert_if_float(value[0])
+            # value[1] = self._convert_if_float(value[1])
+            # value[2] = self._convert_if_float(value[2])
+            # optimized by inlining code :
+            # check if we have float values
+            if isinstance(value[0], float):
+                # check if value is in range
+                assert 0 <= value[0] <= 1
+                # convert to 16bit value
+                value[0] = int(value[0] * 65535)
+            if isinstance(value[1], float):
+                # check if value is in range
+                assert 0 <= value[1] <= 1
+                # convert to 16bit value
+                value[1] = int(value[1] * 65535)
+            if isinstance(value[2], float):
+                # check if value is in range
+                assert 0 <= value[2] <= 1
+                # convert to 16bit value
+                value[2] = int(value[2] * 65535)
+
             # print("value", value)
 
             # check if values are in range
