@@ -672,7 +672,7 @@ class TLC59711Multi:
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
-        # check if values are in range
+        # check if value is in range
         assert 0 <= value <= 1
         # convert to 16bit value
         return int(value * 65535)
