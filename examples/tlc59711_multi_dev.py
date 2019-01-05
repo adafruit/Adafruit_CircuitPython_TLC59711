@@ -29,8 +29,8 @@ offset = 0
 value_high = 1000
 
 
-def channelcheck_update():
-    """ChannelCheck."""
+def channelcheck_update_pixel():
+    """ChannelCheck pixel."""
     global offset  #noqa
     # print("offset", offset)
 
@@ -50,9 +50,27 @@ def channelcheck_update():
         # print("clear")
         # set_all_black()
         # set_all((0, 1, 0))
-        pixels.show()
+        # pixels.show()
         # print()
         # time.sleep(2)
+
+
+def channelcheck_update():
+    """ChannelCheck."""
+    global offset  #noqa
+    # print("offset", offset)
+
+    pixels.set_channel(offset, value_high)
+    # clear last set channel
+    last = offset-1
+    if last < 0:
+        last = pixels.channel_count-1
+    pixels.set_channel(last, 0)
+    pixels.show()
+
+    offset += 1
+    if offset >= pixels.channel_count:
+        offset = 0
 
 
 def set_all_black():
@@ -144,6 +162,33 @@ def time_meassurement_channel_set():
     loop_count = 1000
 
     def _test():
+        pixels.set_channel(0, 10000)
+    print("'set_channel(0, 10000)'")
+    time_meassurement_call(_test, loop_count)
+
+    def _test():
+        pixels.set_channel(0, 10000)
+        pixels.set_channel(1, 10000)
+        pixels.set_channel(2, 10000)
+    print("'set_channel(0..2, 10000)'")
+    time_meassurement_call(_test, loop_count)
+
+    def _test():
+        for i in range(pixel_count * 3):
+            pixels.set_channel(i, 500)
+    print(
+        "'set_channel(for 0..{}, 10000)'"
+        "".format(pixel_count * 3)
+    )
+    time_meassurement_call(_test, 10)
+
+
+def time_meassurement_channel_set_internal():
+    """Meassure timming channel set internal."""
+    print("channel set internal:")
+    loop_count = 1000
+
+    def _test():
         pixels._set_channel_16bit_value(0, 10000)
     print("'_set_channel_16bit_value(0, 10000)'")
     time_meassurement_call(_test, loop_count)
@@ -171,6 +216,8 @@ def time_meassurement():
     time_meassurement_pixels_show()
     time_meassurement_pixels_set()
     time_meassurement_channel_set()
+    time_meassurement_channel_set_internal()
+    set_all((0, 1, 1))
 
 ##########################################
 
@@ -191,7 +238,7 @@ def test_main():
 
     while True:
         channelcheck_update()
-        time.sleep(0.01)
+        time.sleep(0.5)
 
 
 ##########################################

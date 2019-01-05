@@ -690,6 +690,38 @@ class TLC59711Multi:
             value
         )
 
+    # channel access
+    def set_channel(self, channel_index, value):
+        """
+        Set the value for the provided channel.
+
+        :param int channel_index: 0..(channel_count)
+        :param int value: 0..65535
+        """
+        if 0 <= channel_index < (self.channel_count):
+            # check if values are in range
+            assert 0 <= value <= 65535
+            # temp = channel_index
+            # we change channel order here:
+            # buffer channel order is blue, green, red
+            # pixel_index_offset = channel_index % self.COLORS_PER_PIXEL
+            # if pixel_index_offset == 0:
+            #     channel_index += 2
+            # if pixel_index_offset == 2:
+            #     channel_index -= 2
+            # print("{:>2} → {:>2}".format(temp, channel_index))
+            self._set_16bit_value_in_buffer(
+                self._buffer_index_lookuptable[channel_index],
+                value
+            )
+        else:
+            raise IndexError(
+                "channel_index {} out of range (0..{})".format(
+                    channel_index,
+                    self.channel_count
+                )
+            )
+
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
     def __len__(self):
