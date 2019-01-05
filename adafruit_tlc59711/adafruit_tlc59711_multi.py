@@ -682,6 +682,8 @@ class TLC59711Multi:
             value = cls._convert_01_float_to_16bit_integer(value)
         return value
 
+    ##########################################
+
     def _get_channel_16bit_value(self, channel_index):
         return self._get_16bit_value_from_buffer(
             self._buffer_index_lookuptable[channel_index],
@@ -920,6 +922,15 @@ class TLC59711Multi:
                 "index {} out of range [0..{}]"
                 "".format(pixel_index, self.pixel_count)
             )
+
+    def set_pixel_all(self, color):
+        """
+        Set the R, G, B values for all pixels.
+
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        """
+        for i in range(self.pixel_count):
+            self.set_pixel(i, color)
 
     # channel access
     def set_channel(self, channel_index, value):

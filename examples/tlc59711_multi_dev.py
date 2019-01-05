@@ -51,7 +51,7 @@ def channelcheck_update_pixel():
         offset = 0
         # print("clear")
         # set_all_black()
-        # set_all((0, 1, 0))
+        # pixels.set_pixel_all((0, 1, 0))
         # pixels.show()
         # print()
         # time.sleep(2)
@@ -78,16 +78,7 @@ def channelcheck_update():
 
 def set_all_black():
     """Set all Pixel to Black."""
-    set_all((0, 0, 0))
-
-
-def set_all(color):
-    """Set all Pixel to color."""
-    for i in range(pixel_count):
-        pixels[i] = color
-        pixels.set_pixel_float_value(
-            i,
-            value_high, 0, 0)
+    pixels.set_pixel_all((0, 0, 0))
 
 
 ##########################################
@@ -214,6 +205,28 @@ def time_measurement_pixels_set_loop():
             pixels.set_pixel(i, (0.1, 0.5, 0.9))
     time_measurement_call(
         "'pixels.set_pixel(0..{}, (0.1, 0.5, 0.9))'".format(pixel_count),
+        _test,
+        loop_count
+    )
+
+
+def time_measurement_pixels_set_all():
+    """Measure timing pixels set."""
+    print("*** pixels set all:")
+    loop_count = 10
+
+    def _test():
+        pixels.set_pixel_all((500, 40500, 1000))
+    time_measurement_call(
+        "'pixels.set_pixel_all((500, 40500, 1000))'",
+        _test,
+        loop_count
+    )
+
+    def _test():
+        pixels.set_pixel_all((0.1, 0.5, 0.9))
+    time_measurement_call(
+        "'pixels.set_pixel_all((0.1, 0.5, 0.9))'",
         _test,
         loop_count
     )
@@ -372,7 +385,7 @@ def time_measurement_pixels_get():
     """Measure timing pixels get."""
     print("*** pixels get:")
 
-    set_all((1, 11, 111))
+    pixels.set_pixel_all((1, 11, 111))
 
     def _test():
         print("[", end="")
@@ -392,12 +405,13 @@ def time_measurement():
     time_measurement_pixels_show()
     time_measurement_pixels_set_single()
     time_measurement_pixels_set_loop()
+    time_measurement_pixels_set_all()
     time_measurement_pixels_set_16bit()
     time_measurement_pixels_set_float()
     time_measurement_channel_set()
     time_measurement_channel_set_internal()
     time_measurement_pixels_get()
-    set_all((0, 1, 1))
+    pixels.set_pixel_all((0, 1, 1))
 
 ##########################################
 
