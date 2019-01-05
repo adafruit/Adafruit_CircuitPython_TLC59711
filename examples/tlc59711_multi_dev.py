@@ -166,6 +166,15 @@ def time_measurement_pixels_set():
     print("'pixels[for 0..{}] = (0.5, 0.5, 0.5)'".format(pixel_count))
     time_measurement_call(_test, 10)
 
+    def _test():
+        for i in range(pixel_count):
+            pixels.set_pixel_16bit_value(i, 500, 40500, 1000)
+    print(
+        "'pixels.set_pixel_16bit_value(0..{}, 500, 40500, 1000)'"
+        "".format(pixel_count)
+    )
+    time_measurement_call(_test, 10)
+
 
 def time_measurement_channel_set():
     """Measure timing channel set."""
