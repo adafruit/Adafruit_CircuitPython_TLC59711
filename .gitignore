@@ -1,5 +1,6 @@
 *.mpy
 .idea
+*.idea.py
 __pycache__
 _build
 *.pyc

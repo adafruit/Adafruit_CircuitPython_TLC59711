@@ -47,7 +47,7 @@ Implementation Notes
 * this is a variant with multi-chip support.
     The API is mostly compatible to the DotStar / NeoPixel Libraries
     and is therefore also compatible with FancyLED.
-    for thsi see examples/fancy_multi.py
+    for this see examples/fancy_multi.py
 
 * Adafruit CircuitPython firmware for the ESP8622, M0 or M4-based boards:
   https://github.com/adafruit/circuitpython/releases
@@ -76,26 +76,10 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # pylint: disable=too-few-public-methods
 
 
-import ctypes
+# this is not available in CircuitPython
+# import uctypes as ctypes
 
-
-def _shift_in(target_byte, val):
-    # Shift in a new bit value to the provided target byte.  The byte will be
-    # shift one position left and a new bit inserted that's a 1 if val is true,
-    # of a 0 if false.
-    target_byte <<= 1
-    if val:
-        target_byte |= 0x01
-    return target_byte
-
-
-def _get_7bit_uint(buffer, start):
-    """Return 7bit interpreted as unsigned integer."""
-    # 0b1111111
-    pass
-
-
-class TLC59711:
+class TLC59711Multi:
     """Multi TLC59711 16-bit 12 channel LED PWM driver.
 
     This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
@@ -173,8 +157,42 @@ class TLC59711:
     ##########################################
 
     CHIP_BUFFER_LENGTH = 28
-    CHIP_BUFFER_FC_OFFSET = 6
-    CHIP_BUFFER_BC_OFFSET = CHIP_BUFFER_FC_OFFSET + 5
+    WRITE_COMMAND = 0b100101
+    WRITE_COMMAND_BIT_COUNT = 6
+
+    COLORS_PER_PIXEL = 3
+    PIXEL_PER_CHIP = 4
+    CHANNEL_PER_CHIP = COLORS_PER_PIXEL * PIXEL_PER_CHIP
+    BUFFER_BYTES_PER_COLOR = 2
+    BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL
+
+    @staticmethod
+    def set_bit_with_mask(v, mask, x):
+        """Set bit with help of mask."""
+        # clear
+        v &= ~mask
+        if x:
+            # set
+            v |= mask
+        return v
+
+    @staticmethod
+    def set_bit(v, index, x):
+        """Set bit - return new value.
+
+        Set the index:th bit of v to 1 if x is truthy,
+        else to 0, and return the new value.
+        https://stackoverflow.com/a/12174051/574981
+        """
+        # Compute mask, an integer with just bit 'index' set.
+        mask = 1 << index
+        # Clear the bit indicated by the mask (if x is False)
+        v &= ~mask
+        if x:
+            # If x was True, set the bit indicated by the mask.
+            v |= mask
+        # Return the result, we're done.
+        return v
 
     class _GS_Value:
         # Internal decorator to simplify exposing each 16-bit LED PWM channel.
@@ -198,62 +216,139 @@ class TLC59711:
             obj._buffer[self._byte_offset] = (val >> 8) & 0xFF
             obj._buffer[self._byte_offset + 1] = val & 0xFF
 
-    class _FC_bits(ctypes.LittleEndianStructure):
-        """
-        Function Control Data (5 x 1Bit = 5Bit).
+    ##########################################
+    # class _FC():
+    """
+    Function Control Data (5 x 1Bit = 5Bit).
 
-        OUTTMG 1bit
-            GS clock edge select
-            1 = rising edge
-            0 = falling edge
-        EXTGCK 1bit
-            GS reference clock select
-            1 = SCKI clock
-            0 = internal oscillator
-        TMGRST 1bit
-            display timing reset mode
-            1 = OUT forced of on latchpulse
-            0 = no forced reset
-        DSPRPT 1bit
-            display repeat mode
-            1 = auto repeate
-            0 = Out only turned on after Blank or internal latchpulse
-        BLANK 1bit;
-            ic power on sets this to 1
-            1 = blank (outputs off)
-            0 = Out on - controlled by GS-Data
-        """
+    OUTTMG 1bit
+        GS clock edge select
+        1 = rising edge
+        0 = falling edge
+    EXTGCK 1bit
+        GS reference clock select
+        1 = SCKI clock
+        0 = internal oscillator
+    TMGRST 1bit
+        display timing reset mode
+        1 = OUT forced of on latchpulse
+        0 = no forced reset
+    DSPRPT 1bit
+        display repeat mode
+        1 = auto repeate
+        0 = Out only turned on after Blank or internal latchpulse
+    BLANK 1bit;
+        ic power on sets this to 1
+        1 = blank (outputs off)
+        0 = Out on - controlled by GS-Data
+    """
 
-        _fields_ = [
-            ("OUTTMG", ctypes.c_uint8, 1),  # asByte & 1
-            ("EXTGCK", ctypes.c_uint8, 1),  # asByte & 2
-            ("TMGRST", ctypes.c_uint8, 1),  # asByte & 4
-            ("DSPRPT", ctypes.c_uint8, 1),  # asByte & 8
-            ("BLANK", ctypes.c_uint8, 1),  # asByte & 16
-        ]
+    _FC_CHIP_BUFFER_BIT_OFFSET = WRITE_COMMAND_BIT_COUNT
+    _FC_BIT_COUNT = 5
+    _FC_FIELDS = {
+        "OUTTMG": {
+            "offset": 0,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "EXTGCK": {
+            "offset": 1,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "TMGRST": {
+            "offset": 2,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "DSPRPT": {
+            "offset": 3,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "BLANK": {
+            "offset": 4,
+            "length": 1,
+            "mask": 0b1,
+        },
+    }
 
-    # pylama:ignore=E0602
+    ##########################################
+    # class _BC():
+    """
+    BC-Data (3 x 7Bits = 21Bit).
 
-    class _FC(ctypes.Union):
-        _anonymous_ = ("bit",)
-        _fields_ = [
-            ("bit", _FC_bits),
-            ("asByte", ctypes.c_uint8)
-        ]
+    BCB 7bit;
+    BCG 7bit;
+    BCR 7bit;
+    """
+    _BC_CHIP_BUFFER_BIT_OFFSET = WRITE_COMMAND_BIT_COUNT + _FC_BIT_COUNT
+    _BC_BIT_COUNT = 3 * 7
+    # this holds the chip offset and
+    _BC_FIELDS = {
+        "BCB": {
+            "offset": 0,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCG": {
+            "offset": 7,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCR": {
+            "offset": 14,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+    }
 
-    class _BC_bits(ctypes.LittleEndianStructure):
-        _fields_ = [
-            ("BCB", ctypes.c_uint8, 7),  # asByte & 1
-            ("BCG", ctypes.c_uint8, 7),  # asByte & 2
-            ("BCR", ctypes.c_uint8, 7),  # asByte & 4
-        ]
+    ########
+    CHIP_BUFFER_HEADER_BIT_COUNT = \
+        WRITE_COMMAND_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT
+    CHIP_BUFFER_HEADER_BYTE_COUNT = CHIP_BUFFER_HEADER_BIT_COUNT // 8
 
-    class _BC(ctypes.Union):
-        _anonymous_ = ("bit",)
-        _fields_ = [
-            ("bit", _BC_bits),  # pylint: disable=undefined-name
-            ("asByte", ctypes.c_uint32)
-        ]
+    ##########################################
+
+    def set_chipheader_bits_in_buffer(
+            self,
+            *, # noqa
+            chip_index=0,
+            part_bit_offset=0,
+            field={"mask": 0, "length": 0, "offset": 0},
+            value=0
+    ):
+        """Set chip header bits in buffer."""
+        print(
+            "chip_index={} "
+            "part_bit_offset={} "
+            "field={} "
+            "value={} "
+            "".format(
+                chip_index,
+                part_bit_offset,
+                field,
+                value
+            )
+        )
+        offset = part_bit_offset + field["offset"]
+        # restrict value
+        value &= field["mask"]
+        # move value to position
+        value = value << offset
+        # calculate header start
+        header_start = chip_index * self.CHIP_BUFFER_LENGTH
+        # get chip header
+        header = 0xFFFFFFFF & self._buffer[header_start]
+        # 0xFFFFFFFF == 0b11111111111111111111111111111111
+        # create/move mask
+        mask = field["mask"] << offset
+        # clear
+        header &= ~mask
+        # set
+        header |= value
+        # write header back
+        self._buffer[header_start] = header
 
     ##########################################
 
@@ -265,7 +360,7 @@ class TLC59711:
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 4
 
-        # This device is just a big 28 byte long shift register without any
+        # THe chips are just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
         self._buffer = bytearray(self.CHIP_BUFFER_LENGTH * self.chip_count)
@@ -286,24 +381,28 @@ class TLC59711:
         # like in Arduino library.
         # these are set for all chips
         self.outtmg = True
-        self.extgclk = False
+        self.extgck = False
         self.tmgrst = True
         self.dsprpt = True
         self.blank = False
 
         # preparation done
         # now initialize buffer to default values
+
+        self._debug_print_buffer()
+        print("init buffer..")
         self._init_buffer()
+        self._debug_print_buffer()
 
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
             buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
-            self._buffer[buffer_start] = 0x25
+            self._buffer[buffer_start] = 0x25 << 2
 
             self._chip_set_FunctionControl(chip_index)
-            self.chip_set_BCData(
-                chip_index, BCR=self._bcr, BCG=self._bcg, BCB=self._bcb)
+            # self.chip_set_BCData(
+            #     chip_index, bcr=self._bcr, bcg=self._bcg, bcb=self._bcb)
 
     def _chip_set_FunctionControl(self, chip_index):
         """
@@ -313,10 +412,32 @@ class TLC59711:
 
         :param int chip_index: Index of Chip to set.
         """
-        buffer_start = (chip_index * self.CHIP_BUFFER_LENGTH) + \
-            self.CHIP_BUFFER_FC_OFFSET
-        fc = self._FC()
-        fc.asByte = self._buffer[buffer_start]
+        # set all bits
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["OUTTMG"],
+            value=self.outtmg)
+        # self.set_chipheader_bits_in_buffer(
+        #     chip_index=chip_index,
+        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+        #     field=self._FC_FIELDS["EXTGCK"],
+        #     value=self.extgck)
+        # self.set_chipheader_bits_in_buffer(
+        #     chip_index=chip_index,
+        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+        #     field=self._FC_FIELDS["TMGRST"],
+        #     value=self.tmgrst)
+        # self.set_chipheader_bits_in_buffer(
+        #     chip_index=chip_index,
+        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+        #     field=self._FC_FIELDS["DSPRPT"],
+        #     value=self.dsprpt)
+        # self.set_chipheader_bits_in_buffer(
+        #     chip_index=chip_index,
+        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+        #     field=self._FC_FIELDS["BLANK"],
+        #     value=self.blank)
 
     def update_fc(self):
         """
@@ -324,7 +445,7 @@ class TLC59711:
 
         need to be called after you changed on of the
         Function Control Bit Parameters.
-        (outtmg, extgclk, tmgrst, dsprpt, blank)
+        (outtmg, extgck, tmgrst, dsprpt, blank)
         """
         for chip_index in range(self.chip_count):
             self._chip_set_FunctionControl(chip_index)
@@ -338,51 +459,33 @@ class TLC59711:
         :param int bcg: 7-bit value from 0-127 (default=127)
         :param int bcb: 7-bit value from 0-127 (default=127)
         """
-        buffer_start = (
-            (chip_index * self.CHIP_BUFFER_LENGTH) + self.CHIP_BUFFER_BC_OFFSET
-        )
-        bc = self._BC()
-        bc.asByte = self._buffer[buffer_start]
+        # set all bits
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._BC_FIELDS["BCR"],
+            value=bcr)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._BC_FIELDS["BCG"],
+            value=bcg)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._BC_FIELDS["BCB"],
+            value=bcb)
+
+    ##########################################
 
     def _write(self):
         # Write out the current state to the shift register.
+        self._debug_print_buffer()
         try:
             # Lock the SPI bus and configure it for the shift register.
             while not self._spi.try_lock():
                 pass
             self._spi.configure(baudrate=10000000, polarity=0, phase=0)
-            # Update the preamble of chip state in the first 4 bytes (32-bits)
-            # with the write command, function control bits, and brightness
-            # control register values.
-            self._buffer[0] = 0x25  # 0x25 in top 6 bits initiates write.
-            # Lower two bits control OUTTMG and EXTGCLK bits, set them
-            # as appropriate.
-            self._buffer[0] = _shift_in(self._buffer[0], self.outtmg)
-            self._buffer[0] = _shift_in(self._buffer[0], self.extgclk)
-            # Next byte contains remaining function control state and start of
-            # brightness control bits.
-            self._buffer[1] = 0x00
-            self._buffer[1] = _shift_in(self._buffer[1], self.tmgrst)
-            self._buffer[1] = _shift_in(self._buffer[1], self.dsprpt)
-            self._buffer[1] = _shift_in(self._buffer[1], self.blank)
-            # Top 5 bits from BC blue channel.
-            self._buffer[1] <<= 5
-            self._buffer[1] |= (self._bcb >> 2) & 0b11111
-            # Next byte contains lower 2 bits from BC blue channel and upper 6
-            # from BC green channel.
-            self._buffer[2] = (self._bcb) & 0b11
-            self._buffer[2] <<= 6
-            self._buffer[2] |= (self._bcg >> 1) & 0b111111
-            # Final byte contains lower 1 bit from BC green and 7 bits from BC
-            # red channel.
-            self._buffer[3] = self._bcg & 0b1
-            self._buffer[3] <<= 7
-            self._buffer[3] |= self._bcr & 0b1111111
-            # The remaining bytes in the shift register are the channel PWM
-            # values that have already been set by the user.
-            # Now write out the the entire set of bytes.
-            # Note there is no latch or other explicit line to tell the chip
-            # when finished, it expects 28 bytes.
             self._spi.write(self._buffer)
         finally:
             # Ensure the SPI bus is unlocked.
@@ -392,107 +495,195 @@ class TLC59711:
         """Write out the current LED PWM state to the chip."""
         self._write()
 
+    def _debug_print_buffer(self):
+        print("buffer: [", end="")
+        for index in range(self.chip_count):
+            print("{}: ".format(index), end="")
+            # print()
+            # self._debug_print_tlc59711_bin()
+            # print()
+            # self._debug_print_tlc59711_hex()
+            self._debug_print_tlc59711()
+        print("]")
+
+    def _debug_print_tlc59711_bin(self):
+        for index in range(len(self._buffer)):
+            print("{:08b}".format(self._buffer[index]), end="")
+
+    def _debug_print_tlc59711_hex(self):
+        for index in range(len(self._buffer)):
+            print("x{:02X}, ".format(self._buffer[index]), end="")
+
+    def _debug_print_tlc59711(self):
+        self._debug_print_tlc59711_header()
+        self._debug_print_tlc59711_ch()
+
+    def _debug_print_tlc59711_header(self):
+        print(
+            "self.CHIP_BUFFER_HEADER_BYTE_COUNT",
+            self.CHIP_BUFFER_HEADER_BYTE_COUNT)
+        print("header: '", end="")
+        for index in range(self.CHIP_BUFFER_HEADER_BYTE_COUNT):
+            print("{:08b} ".format(self._buffer[index]), end="")
+        print("' ", end="")
+
+    def _debug_print_tlc59711_ch(self):
+        print("ch: [", end="")
+        for index in range(
+                self.CHIP_BUFFER_HEADER_BYTE_COUNT, len(self._buffer)
+        ):
+            print("x{:02X}, ".format(self._buffer[index]), end="")
+        print("]", end="")
+
     # Define properties for global brightness control channels.
-    @property
-    def red_brightness(self):
-        """
-        Red brightness for all channels on all chips.
+    # @property
+    # def red_brightness(self):
+    #     """
+    #     Red brightness for all channels on all chips.
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcr
+    #
+    # @red_brightness.setter
+    # def red_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcr = val
+    #     if self.auto_show:
+    #         self._write()
+    #
+    # @property
+    # def green_brightness(self):
+    #     """
+    #     Green brightness for all channels on all chips.
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcg
+    #
+    # @green_brightness.setter
+    # def green_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcg = val
+    #     if self.auto_show:
+    #         self._write()
+    #
+    # @property
+    # def blue_brightness(self):
+    #     """
+    #     Blue brightness for all channels on all chips.
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcb
+    #
+    # @blue_brightness.setter
+    # def blue_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcb = val
+    #     if self.auto_show:
+    #         self._write()
 
-        This is a 7-bit value from 0-127.
-        """
-        return self._bcr
+    def _get_16bit_value_from_buffer(self, buffer_start):
+        return (
+            (self._buffer[buffer_start + 0] << 8) |
+            self._buffer[buffer_start + 1]
+        )
 
-    @red_brightness.setter
-    def red_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcr = val
-        if self.auto_show:
-            self._write()
+    def _set_16bit_value_in_buffer(self, buffer_start, value):
+        assert 0 <= value <= 65535
+        # print("buffer_start", buffer_start, "value", value)
+        # self._debug_print_buffer()
+        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value & 0xFF
 
-    @property
-    def green_brightness(self):
-        """
-        Green brightness for all channels on all chips.
+    @staticmethod
+    def _convert_01_float_to_16bit_integer(value):
+        """Convert 0..1 Float Value to 16bit (0..65535) Range."""
+        # check if values are in range
+        assert 0 <= value <= 1
+        # convert to 16bit value
+        return int(value * 65535)
 
-        This is a 7-bit value from 0-127.
-        """
-        return self._bcg
+    @classmethod
+    def _convert_if_float(cls, value):
+        """Convert if value is Float."""
+        if isinstance(value, float):
+            value = cls._convert_01_float_to_16bit_integer(value)
+        return value
 
-    @green_brightness.setter
-    def green_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcg = val
-        if self.auto_show:
-            self._write()
-
-    @property
-    def blue_brightness(self):
-        """
-        Blue brightness for all channels on all chips.
-
-        This is a 7-bit value from 0-127.
-        """
-        return self._bcb
-
-    @blue_brightness.setter
-    def blue_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcb = val
-        if self.auto_show:
-            self._write()
+    def _set_channel_16bit_value(self, channel_index, value):
+        buffer_index = (
+            self.CHIP_BUFFER_LENGTH * (channel_index // self.CHANNEL_PER_CHIP)
+            + channel_index % self.CHANNEL_PER_CHIP
+        )
+        buffer_index *= self.BUFFER_BYTES_PER_COLOR
+        buffer_index += self.CHIP_BUFFER_HEADER_BYTE_COUNT
+        self._set_16bit_value_in_buffer(buffer_index, value)
 
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
     def __len__(self):
-        """Retrieve the total number of Pixels available."""
+        """Retrieve TLC5975 the total number of Pixels available."""
         return self.pixel_count
 
     def __getitem__(self, key):
-        # pylint: disable=no-else-return
-        # Disable should be removed when refactor can be tested
         """
         Retrieve the R, G, B values for the provided channel as a 3-tuple.
 
         Each value is a 16-bit number from 0-65535.
         """
-        if 0 < key > (self.pixel_count - 1):
-            raw_data_start = 14 * (key / 12) + key % 12
-            self._buffer[raw_data_start]
-            return (self.r0, self.g0, self.b0)
+        if 0 <= key < self.pixel_count:
+            return (
+                self._get_16bit_value_from_buffer(key + 0),
+                self._get_16bit_value_from_buffer(key + 2),
+                self._get_16bit_value_from_buffer(key + 4)
+            )
         else:
-            raise IndexError
+            raise IndexError("index {} out of range".format(key))
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key, value):
         """
         Set the R, G, B values for the provided channel.
 
-        Specify a 3-tuple of R, G, B values that are each 16-bit numbers
-        (0-65535).
+        Specify a 3-tuple of R, G, B values that are each
+        - 16-bit numbers (0-65535)
+        - or 0..1 floats
         """
-        # Do this check here instead of later to
-        # prevent accidentally keeping auto_show
-        # turned off when a bad key is provided.
-        assert 0 <= key <= 3
+        if 0 <= key < self.pixel_count:
+            # print("value", value)
+            # convert to list
+            value = list(value)
+            # print("value", value)
+            # print("rep:")
+            # repr(value)
+            # print("check length..")
+            assert len(value) == 3
+            # check if we have float values
+            value[0] = self._convert_if_float(value[0])
+            value[1] = self._convert_if_float(value[1])
+            value[2] = self._convert_if_float(value[2])
+            # print("value", value)
 
-        assert len(val) == 3
-        assert 0 <= val[0] <= 65535
-        assert 0 <= val[1] <= 65535
-        assert 0 <= val[2] <= 65535
-        # Temporarily halt auto write to perform an atomic update of all
-        # the channel values.
-        old_auto_show = self.auto_show
-        self.auto_show = False
-        # Update appropriate channel values.
-        if key == 0:
-            self.r0, self.g0, self.b0 = val
-        elif key == 1:
-            self.r1, self.g1, self.b1 = val
-        elif key == 2:
-            self.r2, self.g2, self.b2 = val
-        elif key == 3:
-            self.r3, self.g3, self.b3 = val
-        # Restore auto_show state.
-        self.auto_show = old_auto_show
-        # Write out new values if in auto_show state.
-        if self.auto_show:
-            self._write()
+            # check if values are in range
+            assert 0 <= value[0] <= 65535
+            assert 0 <= value[1] <= 65535
+            assert 0 <= value[2] <= 65535
+            # update buffer
+            # print("key", key, "value", value)
+            # we change channel order here:
+            # buffer channel order is blue, green, red
+            pixel_start = key * self.COLORS_PER_PIXEL
+            self._set_channel_16bit_value(
+                pixel_start + 0,
+                value[0])
+            self._set_channel_16bit_value(
+                pixel_start + 1,
+                value[1])
+            self._set_channel_16bit_value(
+                pixel_start + 2,
+                value[2])
+        else:
+            raise IndexError("index {} out of range".format(key))
+
+##########################################
