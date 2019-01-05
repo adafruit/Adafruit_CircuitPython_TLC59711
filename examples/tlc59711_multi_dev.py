@@ -30,7 +30,7 @@ value_high = 1000
 
 
 def channelcheck_update_pixel():
-    """ChannelCheck pixel."""
+    """Channel check pixel."""
     global offset  #noqa
     # print("offset", offset)
 
@@ -57,7 +57,7 @@ def channelcheck_update_pixel():
 
 
 def channelcheck_update():
-    """ChannelCheck."""
+    """Channel check."""
     global offset  #noqa
     # print("offset", offset)
 
@@ -129,10 +129,10 @@ def time_meassurement_pixels_set():
     print("pixels set:")
     loop_count = 1000
 
-    def _test():
-        pixels[3] = (0, 0, 1000)
-    print("'pixels[3] = (0, 0, 1000)'")
-    time_meassurement_call(_test, loop_count)
+    # def _test():
+    #     pixels[3] = (0, 0, 1000)
+    # print("'pixels[3] = (0, 0, 1000)'")
+    # time_meassurement_call(_test, loop_count)
 
     def _test():
         pixels[3] = (500, 40500, 1000)
@@ -144,11 +144,11 @@ def time_meassurement_pixels_set():
     print("'pixels[12] = (0.5, 0.5, 0.5)'")
     time_meassurement_call(_test, loop_count)
 
-    def _test():
-        for i in range(16):
-            pixels[i] = (0.5, 0.5, 0.5)
-    print("'pixels[for 0..16] = (0.5, 0.5, 0.5)'")
-    time_meassurement_call(_test, 100)
+    # def _test():
+    #     for i in range(16):
+    #         pixels[i] = (0.5, 0.5, 0.5)
+    # print("'pixels[for 0..16] = (0.5, 0.5, 0.5)'")
+    # time_meassurement_call(_test, 100)
 
     def _test():
         for i in range(pixel_count):
@@ -217,7 +217,7 @@ def time_meassurement():
     time_meassurement_pixels_show()
     time_meassurement_pixels_set()
     # time_meassurement_channel_set()
-    # time_meassurement_channel_set_internal()
+    time_meassurement_channel_set_internal()
     set_all((0, 1, 1))
 
 ##########################################

@@ -683,10 +683,14 @@ class TLC59711Multi:
         return value
 
     def _set_channel_16bit_value(self, channel_index, value):
-        self._set_16bit_value_in_buffer(
-            self._buffer_index_lookuptable[channel_index],
-            value
-        )
+        # self._set_16bit_value_in_buffer(
+        #     self._buffer_index_lookuptable[channel_index],
+        #     value
+        # )
+        # optimized:
+        buffer_start = self._buffer_index_lookuptable[channel_index]
+        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value & 0xFF
 
     # channel access
     def set_channel(self, channel_index, value):
@@ -820,24 +824,15 @@ class TLC59711Multi:
             #     self._buffer_index_lookuptable[pixel_start + 2],
             #     value[0])
             # optimize2
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 0] + 0
-            ] = (value[2] >> 8) & 0xFF
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 0] + 1
-            ] = value[2] & 0xFF
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 1] + 0
-            ] = (value[1] >> 8) & 0xFF
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 1] + 1
-            ] = value[1] & 0xFF
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 2] + 0
-            ] = (value[0] >> 8) & 0xFF
-            self._buffer[
-                self._buffer_index_lookuptable[pixel_start + 2] + 1
-            ] = value[0] & 0xFF
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+            self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[2] & 0xFF
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+            self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[1] & 0xFF
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+            self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[0] & 0xFF
         else:
             raise IndexError("index {} out of range".format(key))
 
