@@ -34,16 +34,24 @@ def channelcheck_update():
     global offset  #noqa
     print("offset", offset)
 
-    # pixels[offset] = (value_high, 0, 0)
-    pixels[offset] = (0xAAAA, 0xBBBB, 0xCCCC)
+    pixels[offset] = (value_high, 0, 0)
+    # clear last pixel
+    last = offset-1
+    if last < 0:
+        last = pixel_count-1
+    pixels[last] = (0, 0, 0)
+    # pixels[offset] = (0xAAAA, 0xBBBB, 0xCCCC)
     pixels.show()
 
     offset += 1
     if offset >= pixel_count:
         offset = 0
+        print("clear")
         set_all_black()
-        time.sleep(5)
+        time.sleep(1)
+        pixels.show()
         print()
+        time.sleep(4)
 
 
 def set_all_black():
@@ -69,7 +77,7 @@ def test_main():
     print(42 * '*')
 
     while True:
-        # channelcheck_update()
+        channelcheck_update()
         time.sleep(1)
 
 

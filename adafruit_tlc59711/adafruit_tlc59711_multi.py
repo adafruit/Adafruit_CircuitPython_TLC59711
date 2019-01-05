@@ -157,8 +157,6 @@ class TLC59711Multi:
     ##########################################
 
     CHIP_BUFFER_LENGTH = 28
-    WRITE_COMMAND = 0b100101
-    WRITE_COMMAND_BIT_COUNT = 6
 
     COLORS_PER_PIXEL = 3
     PIXEL_PER_CHIP = 4
@@ -217,6 +215,36 @@ class TLC59711Multi:
             obj._buffer[self._byte_offset + 1] = val & 0xFF
 
     ##########################################
+    # class _BC():
+    """
+    BC-Data (3 x 7Bits = 21Bit).
+
+    BCB 7bit;
+    BCG 7bit;
+    BCR 7bit;
+    """
+    _BC_CHIP_BUFFER_BIT_OFFSET = 0
+    _BC_BIT_COUNT = 3 * 7
+    # this holds the chip offset and
+    _BC_FIELDS = {
+        "BCB": {
+            "offset": 0,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCG": {
+            "offset": 7,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCR": {
+            "offset": 14,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+    }
+
+    ##########################################
     # class _FC():
     """
     Function Control Data (5 x 1Bit = 5Bit).
@@ -243,15 +271,15 @@ class TLC59711Multi:
         0 = Out on - controlled by GS-Data
     """
 
-    _FC_CHIP_BUFFER_BIT_OFFSET = WRITE_COMMAND_BIT_COUNT
+    _FC_CHIP_BUFFER_BIT_OFFSET = _BC_BIT_COUNT
     _FC_BIT_COUNT = 5
     _FC_FIELDS = {
-        "OUTTMG": {
+        "BLANK": {
             "offset": 0,
             "length": 1,
             "mask": 0b1,
         },
-        "EXTGCK": {
+        "DSPRPT": {
             "offset": 1,
             "length": 1,
             "mask": 0b1,
@@ -261,12 +289,12 @@ class TLC59711Multi:
             "length": 1,
             "mask": 0b1,
         },
-        "DSPRPT": {
+        "EXTGCK": {
             "offset": 3,
             "length": 1,
             "mask": 0b1,
         },
-        "BLANK": {
+        "OUTTMG": {
             "offset": 4,
             "length": 1,
             "mask": 0b1,
@@ -274,38 +302,26 @@ class TLC59711Multi:
     }
 
     ##########################################
-    # class _BC():
-    """
-    BC-Data (3 x 7Bits = 21Bit).
+    # class _WRITE_COMMAND():
+    """WRITE_COMMAND."""
 
-    BCB 7bit;
-    BCG 7bit;
-    BCR 7bit;
-    """
-    _BC_CHIP_BUFFER_BIT_OFFSET = WRITE_COMMAND_BIT_COUNT + _FC_BIT_COUNT
-    _BC_BIT_COUNT = 3 * 7
-    # this holds the chip offset and
-    _BC_FIELDS = {
-        "BCB": {
+    _WC_CHIP_BUFFER_BIT_OFFSET = _FC_BIT_COUNT + _BC_BIT_COUNT
+    _WC_BIT_COUNT = 6
+    _WC_FIELDS = {
+        "WRITE_COMMAND": {
             "offset": 0,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCG": {
-            "offset": 7,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCR": {
-            "offset": 14,
-            "length": 7,
-            "mask": 0b01111111,
+            "length": 6,
+            "mask": 0b111111,
         },
     }
+    WRITE_COMMAND = 0b100101
+    ##########################################
+
+
 
     ########
     CHIP_BUFFER_HEADER_BIT_COUNT = \
-        WRITE_COMMAND_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT
+        _WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT
     CHIP_BUFFER_HEADER_BYTE_COUNT = CHIP_BUFFER_HEADER_BIT_COUNT // 8
 
     ##########################################
@@ -319,18 +335,18 @@ class TLC59711Multi:
             value=0
     ):
         """Set chip header bits in buffer."""
-        print(
-            "chip_index={} "
-            "part_bit_offset={} "
-            "field={} "
-            "value={} "
-            "".format(
-                chip_index,
-                part_bit_offset,
-                field,
-                value
-            )
-        )
+        # print(
+        #     "chip_index={} "
+        #     "part_bit_offset={} "
+        #     "field={} "
+        #     "value={} "
+        #     "".format(
+        #         chip_index,
+        #         part_bit_offset,
+        #         field,
+        #         value
+        #     )
+        # )
         offset = part_bit_offset + field["offset"]
         # restrict value
         value &= field["mask"]
@@ -339,7 +355,8 @@ class TLC59711Multi:
         # calculate header start
         header_start = chip_index * self.CHIP_BUFFER_LENGTH
         # get chip header
-        header = 0xFFFFFFFF & self._buffer[header_start]
+        header = self._get_32bit_value_from_buffer(header_start)
+        # print("{:032b}".format(header))
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
         mask = field["mask"] << offset
@@ -348,7 +365,7 @@ class TLC59711Multi:
         # set
         header |= value
         # write header back
-        self._buffer[header_start] = header
+        self._set_32bit_value_in_buffer(header_start, header)
 
     ##########################################
 
@@ -389,66 +406,25 @@ class TLC59711Multi:
         # preparation done
         # now initialize buffer to default values
 
-        self._debug_print_buffer()
+        # self._debug_print_buffer()
         print("init buffer..")
         self._init_buffer()
-        self._debug_print_buffer()
+        # self._debug_print_buffer()
 
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
-            self._buffer[buffer_start] = 0x25 << 2
+            # buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
+            # self._buffer[buffer_start] = 0x25 << 2
 
+            self._debug_print_buffer()
+            self.chip_set_BCData(
+                chip_index, bcr=self._bcr, bcg=self._bcg, bcb=self._bcb)
+            self._debug_print_buffer()
             self._chip_set_FunctionControl(chip_index)
-            # self.chip_set_BCData(
-            #     chip_index, bcr=self._bcr, bcg=self._bcg, bcb=self._bcb)
-
-    def _chip_set_FunctionControl(self, chip_index):
-        """
-        Set Function Control Bits in Buffer.
-
-        values from object global parameters are used.
-
-        :param int chip_index: Index of Chip to set.
-        """
-        # set all bits
-        self.set_chipheader_bits_in_buffer(
-            chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["OUTTMG"],
-            value=self.outtmg)
-        # self.set_chipheader_bits_in_buffer(
-        #     chip_index=chip_index,
-        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
-        #     field=self._FC_FIELDS["EXTGCK"],
-        #     value=self.extgck)
-        # self.set_chipheader_bits_in_buffer(
-        #     chip_index=chip_index,
-        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
-        #     field=self._FC_FIELDS["TMGRST"],
-        #     value=self.tmgrst)
-        # self.set_chipheader_bits_in_buffer(
-        #     chip_index=chip_index,
-        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
-        #     field=self._FC_FIELDS["DSPRPT"],
-        #     value=self.dsprpt)
-        # self.set_chipheader_bits_in_buffer(
-        #     chip_index=chip_index,
-        #     part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
-        #     field=self._FC_FIELDS["BLANK"],
-        #     value=self.blank)
-
-    def update_fc(self):
-        """
-        Update Function Control Bits for all Chips in Buffer.
-
-        need to be called after you changed on of the
-        Function Control Bit Parameters.
-        (outtmg, extgck, tmgrst, dsprpt, blank)
-        """
-        for chip_index in range(self.chip_count):
-            self._chip_set_FunctionControl(chip_index)
+            self._debug_print_buffer()
+            self._chip_set_WriteCommand(chip_index)
+            self._debug_print_buffer()
 
     def chip_set_BCData(self, chip_index, bcr=127, bcg=127, bcb=127):
         """
@@ -476,6 +452,63 @@ class TLC59711Multi:
             field=self._BC_FIELDS["BCB"],
             value=bcb)
 
+    def _chip_set_FunctionControl(self, chip_index):
+        """
+        Set Function Control Bits in Buffer.
+
+        values from object global parameters are used.
+
+        :param int chip_index: Index of Chip to set.
+        """
+        # set all bits
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["OUTTMG"],
+            value=self.outtmg)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["EXTGCK"],
+            value=self.extgck)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["TMGRST"],
+            value=self.tmgrst)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["DSPRPT"],
+            value=self.dsprpt)
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._FC_FIELDS["BLANK"],
+            value=self.blank)
+
+    def update_fc(self):
+        """
+        Update Function Control Bits for all Chips in Buffer.
+
+        need to be called after you changed on of the
+        Function Control Bit Parameters.
+        (outtmg, extgck, tmgrst, dsprpt, blank)
+        """
+        for chip_index in range(self.chip_count):
+            self._chip_set_FunctionControl(chip_index)
+
+    def _chip_set_WriteCommand(self, chip_index):
+        """
+        Set WRITE_COMMAND.
+        """
+        # set all bits
+        self.set_chipheader_bits_in_buffer(
+            chip_index=chip_index,
+            part_bit_offset=self._WC_CHIP_BUFFER_BIT_OFFSET,
+            field=self._WC_FIELDS["WRITE_COMMAND"],
+            value=self.WRITE_COMMAND)
+
     ##########################################
 
     def _write(self):
@@ -496,14 +529,21 @@ class TLC59711Multi:
         self._write()
 
     def _debug_print_buffer(self):
-        print("buffer: [", end="")
+        indent = "  "
+        if self.chip_count == 1:
+            print("buffer: [", end="")
+            indent = ""
+        else:
+            print("buffer: [")
         for index in range(self.chip_count):
-            print("{}: ".format(index), end="")
+            print("{}{}: ".format(indent, index), end="")
             # print()
             # self._debug_print_tlc59711_bin()
             # print()
             # self._debug_print_tlc59711_hex()
             self._debug_print_tlc59711()
+            if self.chip_count > 1:
+                print()
         print("]")
 
     def _debug_print_tlc59711_bin(self):
@@ -519,9 +559,9 @@ class TLC59711Multi:
         self._debug_print_tlc59711_ch()
 
     def _debug_print_tlc59711_header(self):
-        print(
-            "self.CHIP_BUFFER_HEADER_BYTE_COUNT",
-            self.CHIP_BUFFER_HEADER_BYTE_COUNT)
+        # print(
+        #     "self.CHIP_BUFFER_HEADER_BYTE_COUNT",
+        #     self.CHIP_BUFFER_HEADER_BYTE_COUNT)
         print("header: '", end="")
         for index in range(self.CHIP_BUFFER_HEADER_BYTE_COUNT):
             print("{:08b} ".format(self._buffer[index]), end="")
@@ -583,6 +623,23 @@ class TLC59711Multi:
     #     self._bcb = val
     #     if self.auto_show:
     #         self._write()
+
+    def _get_32bit_value_from_buffer(self, buffer_start):
+        return (
+            (self._buffer[buffer_start + 0] << 24) |
+            (self._buffer[buffer_start + 1] << 16) |
+            (self._buffer[buffer_start + 2] << 8) |
+            self._buffer[buffer_start + 3]
+        )
+
+    def _set_32bit_value_in_buffer(self, buffer_start, value):
+        assert 0 <= value <= 0xFFFFFFFF
+        # print("buffer_start", buffer_start, "value", value)
+        # self._debug_print_buffer()
+        self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
+        self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
+        self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 3] = value & 0xFF
 
     def _get_16bit_value_from_buffer(self, buffer_start):
         return (
@@ -676,13 +733,13 @@ class TLC59711Multi:
             pixel_start = key * self.COLORS_PER_PIXEL
             self._set_channel_16bit_value(
                 pixel_start + 0,
-                value[0])
+                value[2])
             self._set_channel_16bit_value(
                 pixel_start + 1,
                 value[1])
             self._set_channel_16bit_value(
                 pixel_start + 2,
-                value[2])
+                value[0])
         else:
             raise IndexError("index {} out of range".format(key))
 
