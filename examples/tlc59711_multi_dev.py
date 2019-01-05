@@ -82,7 +82,6 @@ def set_all_black():
 def set_all(color):
     """Set all Pixel to color."""
     for i in range(pixel_count):
-        # pixels[i // 4][i % 4] = color
         pixels[i] = color
 
 
@@ -140,16 +139,6 @@ def time_measurement_pixels_set():
     time_measurement_call(_test, loop_count)
 
     def _test():
-        pixels.set_pixel_16bit_value(3, 500, 40500, 1000)
-    print("'pixels.set_pixel_16bit_value(3, 500, 40500, 1000)'")
-    time_measurement_call(_test, loop_count)
-
-    def _test():
-        pixels.set_pixel_16bit_color(3, (500, 40500, 1000))
-    print("'pixels.set_pixel_16bit_color(3, (500, 40500, 1000))'")
-    time_measurement_call(_test, loop_count)
-
-    def _test():
         pixels[12] = (0.5, 0.5, 0.5)
     print("'pixels[12] = (0.5, 0.5, 0.5)'")
     time_measurement_call(_test, loop_count)
@@ -166,11 +155,65 @@ def time_measurement_pixels_set():
     print("'pixels[for 0..{}] = (0.5, 0.5, 0.5)'".format(pixel_count))
     time_measurement_call(_test, 10)
 
+
+def time_measurement_pixels_get():
+    """Measure timing pixels get."""
+    print("pixels get:")
+
+    set_all((1, 11, 111))
+
+    def _test():
+        print("[", end="")
+        for i in range(pixel_count):
+            print("{}:{}, ".format(i, pixels[i]), end="")
+        print("]", end="")
+    print("'print('{}:{}, '.format(i, pixels[i]), end='')'")
+    time_measurement_call(_test, 1)
+
+
+def time_measurement_pixels_set2():
+    """Measure timing pixels set."""
+    print("pixels set2:")
+    loop_count = 1000
+
+    def _test():
+        pixels.set_pixel_16bit_value(3, 500, 40500, 1000)
+    print("'pixels.set_pixel_16bit_value(3, 500, 40500, 1000)'")
+    time_measurement_call(_test, loop_count)
+
+    def _test():
+        pixels.set_pixel_16bit_color(3, (500, 40500, 1000))
+    print("'pixels.set_pixel_16bit_color(3, (500, 40500, 1000))'")
+    time_measurement_call(_test, loop_count)
+
     def _test():
         for i in range(pixel_count):
             pixels.set_pixel_16bit_value(i, 500, 40500, 1000)
     print(
         "'pixels.set_pixel_16bit_value(0..{}, 500, 40500, 1000)'"
+        "".format(pixel_count)
+    )
+    time_measurement_call(_test, 10)
+
+    def _test():
+        for i in range(pixel_count):
+            pixels.set_pixel_16bit_value(
+                i,
+                int(0.1 * 65535),
+                int(0.5 * 65535),
+                int(0.9 * 65535)
+            )
+    print(
+        "'pixels.set_pixel_16bit_value(0..{}, f2i 0.1, f2i 0.5, f2i 0.9)'"
+        "".format(pixel_count)
+    )
+    time_measurement_call(_test, 10)
+
+    def _test():
+        for i in range(pixel_count):
+            pixels.set_pixel_float_value(i, 0.1, 0.5, 0.9)
+    print(
+        "'pixels.set_pixel_float_value(0..{}, 0.1, 0.5, 0.9)'"
         "".format(pixel_count)
     )
     time_measurement_call(_test, 10)
@@ -235,8 +278,10 @@ def time_measurement():
     print("meassure timing:")
     time_measurement_pixels_show()
     time_measurement_pixels_set()
+    time_measurement_pixels_set2()
     # time_measurement_channel_set()
     time_measurement_channel_set_internal()
+    time_measurement_pixels_get()
     set_all((0, 1, 1))
 
 ##########################################

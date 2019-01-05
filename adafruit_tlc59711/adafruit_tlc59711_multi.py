@@ -682,6 +682,11 @@ class TLC59711Multi:
             value = cls._convert_01_float_to_16bit_integer(value)
         return value
 
+    def _get_channel_16bit_value(self, channel_index):
+        return self._get_16bit_value_from_buffer(
+            self._buffer_index_lookuptable[channel_index],
+        )
+
     def _set_channel_16bit_value(self, channel_index, value):
         # self._set_16bit_value_in_buffer(
         #     self._buffer_index_lookuptable[channel_index],
@@ -704,6 +709,32 @@ class TLC59711Multi:
         :param int value_g: 0..65535
         :param int value_b: 0..65535
         """
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel_float_value(self, pixel_index, value_r, value_g, value_b):
+        """
+        Set the value for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int value_r: 0..1
+        :param int value_g: 0..1
+        :param int value_b: 0..1
+        """
+        value_r = int(value_r * 65535)
+        value_g = int(value_g * 65535)
+        value_b = int(value_b * 65535)
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
@@ -782,13 +813,17 @@ class TLC59711Multi:
         Each value is a 16-bit number from 0-65535.
         """
         if 0 <= key < self.pixel_count:
+            pixel_start = key * self.COLORS_PER_PIXEL
             return (
-                self._get_16bit_value_from_buffer(key + 0),
-                self._get_16bit_value_from_buffer(key + 2),
-                self._get_16bit_value_from_buffer(key + 4)
+                self._get_channel_16bit_value(pixel_start + 0),
+                self._get_channel_16bit_value(pixel_start + 1),
+                self._get_channel_16bit_value(pixel_start + 2)
             )
         else:
-            raise IndexError("index {} out of range".format(key))
+            raise IndexError(
+                "index {} out of range [0..{}]"
+                "".format(key, self.pixel_count)
+            )
 
     def __setitem__(self, key, value):
         """
@@ -855,14 +890,14 @@ class TLC59711Multi:
             # we change channel order here:
             # buffer channel order is blue, green, red
             pixel_start = key * self.COLORS_PER_PIXEL
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 0],
+            # self._set_channel_16bit_value(
+            #     pixel_start + 0,
             #     value[2])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 1],
+            # self._set_channel_16bit_value(
+            #     pixel_start + 1,
             #     value[1])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 2],
+            # self._set_channel_16bit_value(
+            #     pixel_start + 2,
             #     value[0])
             # optimize:
             # self._set_16bit_value_in_buffer(
@@ -885,6 +920,9 @@ class TLC59711Multi:
             self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[0] & 0xFF
         else:
-            raise IndexError("index {} out of range".format(key))
+            raise IndexError(
+                "index {} out of range [0..{}]"
+                "".format(key, self.pixel_count)
+            )
 
 ##########################################
