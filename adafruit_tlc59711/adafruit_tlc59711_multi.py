@@ -704,11 +704,11 @@ class TLC59711Multi:
             # temp = channel_index
             # we change channel order here:
             # buffer channel order is blue, green, red
-            # pixel_index_offset = channel_index % self.COLORS_PER_PIXEL
-            # if pixel_index_offset == 0:
-            #     channel_index += 2
-            # if pixel_index_offset == 2:
-            #     channel_index -= 2
+            pixel_index_offset = channel_index % self.COLORS_PER_PIXEL
+            if pixel_index_offset == 0:
+                channel_index += 2
+            elif pixel_index_offset == 2:
+                channel_index -= 2
             # print("{:>2} → {:>2}".format(temp, channel_index))
             self._set_16bit_value_in_buffer(
                 self._buffer_index_lookuptable[channel_index],
@@ -775,14 +775,14 @@ class TLC59711Multi:
             # we change channel order here:
             # buffer channel order is blue, green, red
             pixel_start = key * self.COLORS_PER_PIXEL
-            self._set_channel_16bit_value(
-                pixel_start + 0,
+            self._set_16bit_value_in_buffer(
+                self._buffer_index_lookuptable[pixel_start + 0],
                 value[2])
-            self._set_channel_16bit_value(
-                pixel_start + 1,
+            self._set_16bit_value_in_buffer(
+                self._buffer_index_lookuptable[pixel_start + 1],
                 value[1])
-            self._set_channel_16bit_value(
-                pixel_start + 2,
+            self._set_16bit_value_in_buffer(
+                self._buffer_index_lookuptable[pixel_start + 2],
                 value[0])
         else:
             raise IndexError("index {} out of range".format(key))
