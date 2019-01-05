@@ -50,7 +50,7 @@ def channelcheck_update_pixel():
         # time.sleep(0.5)
         offset = 0
         # print("clear")
-        # set_all_black()
+        # pixels.set_all_black()
         # pixels.set_pixel_all((0, 1, 0))
         # pixels.show()
         # print()
@@ -74,11 +74,6 @@ def channelcheck_update():
     offset += 1
     if offset >= pixels.channel_count:
         offset = 0
-
-
-def set_all_black():
-    """Set all Pixel to Black."""
-    pixels.set_pixel_all((0, 0, 0))
 
 
 ##########################################
@@ -227,6 +222,22 @@ def time_measurement_pixels_set_all():
         pixels.set_pixel_all((0.1, 0.5, 0.9))
     time_measurement_call(
         "'pixels.set_pixel_all((0.1, 0.5, 0.9))'",
+        _test,
+        loop_count
+    )
+
+    def _test():
+        pixels.set_pixel_all_16bit_value(500, 40500, 1000)
+    time_measurement_call(
+        "'pixels.set_pixel_all_16bit_value(500, 40500, 1000)'",
+        _test,
+        loop_count
+    )
+
+    def _test():
+        pixels.set_all_black()
+    time_measurement_call(
+        "'pixels.set_all_black()'",
         _test,
         loop_count
     )

@@ -923,6 +923,19 @@ class TLC59711Multi:
                 "".format(pixel_index, self.pixel_count)
             )
 
+    def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
+        """
+        Set the R, G, B values for all pixels.
+
+        fast. without error checking.
+
+        :param int value_r: 0..65535
+        :param int value_g: 0..65535
+        :param int value_b: 0..65535
+        """
+        for i in range(self.pixel_count):
+            self.set_pixel_16bit_value(i, value_r, value_g, value_b)
+
     def set_pixel_all(self, color):
         """
         Set the R, G, B values for all pixels.
@@ -931,6 +944,11 @@ class TLC59711Multi:
         """
         for i in range(self.pixel_count):
             self.set_pixel(i, color)
+
+    def set_all_black(self):
+        """Set all pixels to black."""
+        for i in range(self.pixel_count):
+            self.set_pixel_16bit_value(i, 0, 0, 0)
 
     # channel access
     def set_channel(self, channel_index, value):
