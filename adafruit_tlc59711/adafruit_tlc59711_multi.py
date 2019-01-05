@@ -768,6 +768,159 @@ class TLC59711Multi:
         self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value[0] & 0xFF
 
+    def set_pixel_float_color(self, pixel_index, value):
+        """
+        Set color for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+        its a little bit slower as `set_pixel_16bit_value`
+
+        :param int pixel_index: 0..(pixel_count)
+        :param tuple/float 3-tuple of R, G, B;  0..1
+        """
+        # convert tuple to list
+        # this way we can assign values.
+        # this seems faster than creating tree new variables
+        value = list(value)
+        # convert to 16bit int
+        value[0] = int(value[0] * 65535)
+        value[1] = int(value[1] * 65535)
+        value[2] = int(value[2] * 65535)
+        # calculate pixel_start
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        # set values
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[2] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[1] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value[0] & 0xFF
+
+        # value_r = int(value[0] * 65535)
+        # value_g = int(value[1] * 65535)
+        # value_b = int(value[2] * 65535)
+        # pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        # buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        # self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        # self._buffer[buffer_start + 1] = value_b & 0xFF
+        # buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        # self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        # self._buffer[buffer_start + 1] = value_g & 0xFF
+        # buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        # self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        # self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel(self, pixel_index, value):
+        """
+        Set the R, G, B values for the pixel.
+
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+
+        :param int pixel_index: 0..(pixel_count)
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        """
+        if 0 <= pixel_index < self.pixel_count:
+            # print("value", value)
+            # convert to list
+            value = list(value)
+            # print("value", value)
+            # print("rep:")
+            # repr(value)
+            # print("check length..")
+            if len(value) != self.COLORS_PER_PIXEL:
+                raise IndexError(
+                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
+                    "".format(len(value), self.COLORS_PER_PIXEL)
+                )
+            # tested:
+            # splitting up into variables to not need the list..
+            # this is about 0.25ms slower!
+            # value_r = value[0]
+            # value_g = value[1]
+            # value_b = value[2]
+
+            # check if we have float values
+            # value[0] = self._convert_if_float(value[0])
+            # value[1] = self._convert_if_float(value[1])
+            # value[2] = self._convert_if_float(value[2])
+
+            # check if values are in range
+            # assert 0 <= value[0] <= 65535
+            # assert 0 <= value[1] <= 65535
+            # assert 0 <= value[2] <= 65535
+
+            # optimize:
+            # check if we have float values
+            if isinstance(value[0], float):
+                # check if value is in range
+                assert 0 <= value[0] <= 1
+                # convert to 16bit value
+                value[0] = int(value[0] * 65535)
+            else:
+                assert 0 <= value[0] <= 65535
+            if isinstance(value[1], float):
+                # check if value is in range
+                assert 0 <= value[1] <= 1
+                # convert to 16bit value
+                value[1] = int(value[1] * 65535)
+            else:
+                assert 0 <= value[1] <= 65535
+            if isinstance(value[2], float):
+                # check if value is in range
+                assert 0 <= value[2] <= 1
+                # convert to 16bit value
+                value[2] = int(value[2] * 65535)
+            else:
+                assert 0 <= value[2] <= 65535
+
+            # print("value", value)
+
+            # update buffer
+            # print("pixel_index", pixel_index, "value", value)
+            # we change channel order here:
+            # buffer channel order is blue, green, red
+            pixel_start = pixel_index * self.COLORS_PER_PIXEL
+            # self._set_channel_16bit_value(
+            #     pixel_start + 0,
+            #     value[2])
+            # self._set_channel_16bit_value(
+            #     pixel_start + 1,
+            #     value[1])
+            # self._set_channel_16bit_value(
+            #     pixel_start + 2,
+            #     value[0])
+            # optimize:
+            # self._set_16bit_value_in_buffer(
+            #     self._buffer_index_lookuptable[pixel_start + 0],
+            #     value[2])
+            # self._set_16bit_value_in_buffer(
+            #     self._buffer_index_lookuptable[pixel_start + 1],
+            #     value[1])
+            # self._set_16bit_value_in_buffer(
+            #     self._buffer_index_lookuptable[pixel_start + 2],
+            #     value[0])
+            # optimize2
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+            self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[2] & 0xFF
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+            self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[1] & 0xFF
+            buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+            self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[0] & 0xFF
+        else:
+            raise IndexError(
+                "index {} out of range [0..{}]"
+                "".format(pixel_index, self.pixel_count)
+            )
+
     # channel access
     def set_channel(self, channel_index, value):
         """
@@ -827,11 +980,15 @@ class TLC59711Multi:
 
     def __setitem__(self, key, value):
         """
-        Set the R, G, B values for the provided channel.
+        Set the R, G, B values for the pixel.
 
-        Specify a 3-tuple of R, G, B values that are each
-        - 16-bit numbers (0-65535)
-        - or 0..1 floats
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+        this shortcut is identicall to `set_pixel`
+
+        :param int key: 0..(pixel_count)
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
         if 0 <= key < self.pixel_count:
             # print("value", value)
@@ -841,7 +998,11 @@ class TLC59711Multi:
             # print("rep:")
             # repr(value)
             # print("check length..")
-            assert len(value) == 3
+            if len(value) != self.COLORS_PER_PIXEL:
+                raise IndexError(
+                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
+                    "".format(len(value), self.COLORS_PER_PIXEL)
+                )
             # tested:
             # splitting up into variables to not need the list..
             # this is about 0.25ms slower!
