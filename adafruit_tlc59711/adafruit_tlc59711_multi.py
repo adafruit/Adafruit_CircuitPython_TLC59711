@@ -566,6 +566,8 @@ class TLC59711Multi:
             print("x{:02X}, ".format(self._buffer[index]), end="")
         print("]", end="")
 
+    ##########################################
+
     # Define properties for global brightness control channels.
     # @property
     # def red_brightness(self):
@@ -614,6 +616,8 @@ class TLC59711Multi:
     #     self._bcb = val
     #     if self.auto_show:
     #         self._write()
+
+    ##########################################
 
     def _get_32bit_value_from_buffer(self, buffer_start):
         return (
@@ -671,6 +675,51 @@ class TLC59711Multi:
         if isinstance(value, float):
             value = cls._convert_01_float_to_16bit_integer(value)
         return value
+
+    @staticmethod
+    def _check_and_convert(value):
+        # check if we have float values
+        if isinstance(value[0], float):
+            # check if value is in range
+            if not 0.0 <= value[0] <= 1.0:
+                raise ValueError(
+                    "value[0] {} not in range: 0..1"
+                    "".format(value[0])
+                )
+            # convert to 16bit value
+            value[0] = int(value[0] * 65535)
+        else:
+            if not 0 <= value[0] <= 65535:
+                raise ValueError(
+                    "value[0] {} not in range: 0..65535"
+                    "".format(value[0])
+                )
+        if isinstance(value[1], float):
+            if not 0.0 <= value[1] <= 1.0:
+                raise ValueError(
+                    "value[1] {} not in range: 0..1"
+                    "".format(value[1])
+                )
+            value[1] = int(value[1] * 65535)
+        else:
+            if not 0 <= value[1] <= 65535:
+                raise ValueError(
+                    "value[1] {} not in range: 0..65535"
+                    "".format(value[1])
+                )
+        if isinstance(value[2], float):
+            if not 0.0 <= value[2] <= 1.0:
+                raise ValueError(
+                    "value[2] {} not in range: 0..1"
+                    "".format(value[2])
+                )
+            value[2] = int(value[2] * 65535)
+        else:
+            if not 0 <= value[2] <= 65535:
+                raise ValueError(
+                    "value[2] {} not in range: 0..65535"
+                    "".format(value[2])
+                )
 
     ##########################################
 
@@ -858,53 +907,9 @@ class TLC59711Multi:
             #         "".format(value[2])
             #     )
 
-            # optimize:
-            # check if we have float values
-            if isinstance(value[0], float):
-                # check if value is in range
-                if not 0.0 <= value[0] <= 1.0:
-                    raise ValueError(
-                        "value[0] {} not in range: 0..1"
-                        "".format(value[0])
-                    )
-                # convert to 16bit value
-                value[0] = int(value[0] * 65535)
-            else:
-                if not 0 <= value[0] <= 65535:
-                    raise ValueError(
-                        "value[0] {} not in range: 0..65535"
-                        "".format(value[0])
-                    )
-            if isinstance(value[1], float):
-                # check if value is in range
-                if not 0.0 <= value[1] <= 1.0:
-                    raise ValueError(
-                        "value[1] {} not in range: 0..1"
-                        "".format(value[1])
-                    )
-                # convert to 16bit value
-                value[1] = int(value[1] * 65535)
-            else:
-                if not 0 <= value[1] <= 65535:
-                    raise ValueError(
-                        "value[1] {} not in range: 0..65535"
-                        "".format(value[1])
-                    )
-            if isinstance(value[2], float):
-                # check if value is in range
-                if not 0.0 <= value[2] <= 1.0:
-                    raise ValueError(
-                        "value[2] {} not in range: 0..1"
-                        "".format(value[2])
-                    )
-                # convert to 16bit value
-                value[2] = int(value[2] * 65535)
-            else:
-                if not 0 <= value[2] <= 65535:
-                    raise ValueError(
-                        "value[2] {} not in range: 0..65535"
-                        "".format(value[2])
-                    )
+            # optimized:
+            # this modifies value in place..
+            self._check_and_convert(value)
 
             # print("value", value)
 
@@ -1059,48 +1064,8 @@ class TLC59711Multi:
                     "".format(len(value), self.COLORS_PER_PIXEL)
                 )
 
-            # check if we have float values
-            if isinstance(value[0], float):
-                # check if value is in range
-                if not 0.0 <= value[0] <= 1.0:
-                    raise ValueError(
-                        "value[0] {} not in range: 0..1"
-                        "".format(value[0])
-                    )
-                # convert to 16bit value
-                value[0] = int(value[0] * 65535)
-            else:
-                if not 0 <= value[0] <= 65535:
-                    raise ValueError(
-                        "value[0] {} not in range: 0..65535"
-                        "".format(value[0])
-                    )
-            if isinstance(value[1], float):
-                if not 0.0 <= value[1] <= 1.0:
-                    raise ValueError(
-                        "value[1] {} not in range: 0..1"
-                        "".format(value[1])
-                    )
-                value[1] = int(value[1] * 65535)
-            else:
-                if not 0 <= value[1] <= 65535:
-                    raise ValueError(
-                        "value[1] {} not in range: 0..65535"
-                        "".format(value[1])
-                    )
-            if isinstance(value[2], float):
-                if not 0.0 <= value[2] <= 1.0:
-                    raise ValueError(
-                        "value[2] {} not in range: 0..1"
-                        "".format(value[2])
-                    )
-                value[2] = int(value[2] * 65535)
-            else:
-                if not 0 <= value[2] <= 65535:
-                    raise ValueError(
-                        "value[2] {} not in range: 0..65535"
-                        "".format(value[2])
-                    )
+            # this modifies value in place..
+            self._check_and_convert(value)
 
             # update buffer
             # we change channel order here:
