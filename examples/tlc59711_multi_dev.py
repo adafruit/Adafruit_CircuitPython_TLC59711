@@ -88,8 +88,8 @@ def set_all(color):
 
 ##########################################
 
-def time_meassurement_call(test_function, loop_count=1000):
-    """Meassure timming."""
+def time_measurement_call(test_function, loop_count=1000):
+    """Measure timing."""
     duration = 0
     start_time = time.monotonic()
     for _index in range(loop_count):
@@ -113,66 +113,66 @@ def time_meassurement_call(test_function, loop_count=1000):
     )
 
 
-def time_meassurement_pixels_show():
-    """Meassure timming."""
+def time_measurement_pixels_show():
+    """Measure timing."""
     print("pixels show:")
     loop_count = 1000
 
     def _test():
         pixels.show()
     print("'pixels.show()'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
 
-def time_meassurement_pixels_set():
-    """Meassure timming pixels set."""
+def time_measurement_pixels_set():
+    """Measure timing pixels set."""
     print("pixels set:")
     loop_count = 1000
 
     # def _test():
     #     pixels[3] = (0, 0, 1000)
     # print("'pixels[3] = (0, 0, 1000)'")
-    # time_meassurement_call(_test, loop_count)
+    # time_measurement_call(_test, loop_count)
 
     def _test():
         pixels[3] = (500, 40500, 1000)
     print("'pixels[3] = (500, 40500, 1000)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     def _test():
         pixels[12] = (0.5, 0.5, 0.5)
     print("'pixels[12] = (0.5, 0.5, 0.5)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     # def _test():
     #     for i in range(16):
     #         pixels[i] = (0.5, 0.5, 0.5)
     # print("'pixels[for 0..16] = (0.5, 0.5, 0.5)'")
-    # time_meassurement_call(_test, 100)
+    # time_measurement_call(_test, 100)
 
     def _test():
         for i in range(pixel_count):
             pixels[i] = (0.5, 0.5, 0.5)
     print("'pixels[for 0..{}] = (0.5, 0.5, 0.5)'".format(pixel_count))
-    time_meassurement_call(_test, 10)
+    time_measurement_call(_test, 10)
 
 
-def time_meassurement_channel_set():
-    """Meassure timming channel set."""
+def time_measurement_channel_set():
+    """Measure timing channel set."""
     print("channel set:")
     loop_count = 1000
 
     def _test():
         pixels.set_channel(0, 10000)
     print("'set_channel(0, 10000)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     def _test():
         pixels.set_channel(0, 10000)
         pixels.set_channel(1, 10000)
         pixels.set_channel(2, 10000)
     print("'set_channel(0..2, 10000)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     def _test():
         for i in range(pixel_count * 3):
@@ -181,25 +181,25 @@ def time_meassurement_channel_set():
         "'set_channel(for 0..{}, 10000)'"
         "".format(pixel_count * 3)
     )
-    time_meassurement_call(_test, 10)
+    time_measurement_call(_test, 10)
 
 
-def time_meassurement_channel_set_internal():
-    """Meassure timming channel set internal."""
+def time_measurement_channel_set_internal():
+    """Measure timing channel set internal."""
     print("channel set internal:")
     loop_count = 1000
 
     def _test():
         pixels._set_channel_16bit_value(0, 10000)
     print("'_set_channel_16bit_value(0, 10000)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     def _test():
         pixels._set_channel_16bit_value(0, 10000)
         pixels._set_channel_16bit_value(1, 10000)
         pixels._set_channel_16bit_value(2, 10000)
     print("'_set_channel_16bit_value(0..2, 10000)'")
-    time_meassurement_call(_test, loop_count)
+    time_measurement_call(_test, loop_count)
 
     def _test():
         for i in range(pixel_count * 3):
@@ -208,16 +208,16 @@ def time_meassurement_channel_set_internal():
         "'_set_channel_16bit_value(for 0..{}, 10000)'"
         "".format(pixel_count * 3)
     )
-    time_meassurement_call(_test, 10)
+    time_measurement_call(_test, 10)
 
 
-def time_meassurement():
-    """Meassure timming."""
-    print("meassure timming:")
-    time_meassurement_pixels_show()
-    time_meassurement_pixels_set()
-    # time_meassurement_channel_set()
-    time_meassurement_channel_set_internal()
+def time_measurement():
+    """Measure timing."""
+    print("meassure timing:")
+    time_measurement_pixels_show()
+    time_measurement_pixels_set()
+    # time_measurement_channel_set()
+    time_measurement_channel_set_internal()
     set_all((0, 1, 1))
 
 ##########################################
@@ -232,7 +232,7 @@ def test_main():
     # time.sleep(0.5)
     # print(42 * '*')
 
-    time_meassurement()
+    time_measurement()
     time.sleep(0.5)
     print(42 * '*')
 

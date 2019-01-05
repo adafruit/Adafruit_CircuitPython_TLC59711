@@ -773,7 +773,7 @@ class TLC59711Multi:
             # assert 0 <= value[1] <= 65535
             # assert 0 <= value[2] <= 65535
 
-            # optimized by inlining code :
+            # optimize:
             # check if we have float values
             if isinstance(value[0], float):
                 # check if value is in range
