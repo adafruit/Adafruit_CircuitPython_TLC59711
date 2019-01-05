@@ -374,6 +374,7 @@ class TLC59711Multi:
         self._spi = spi
         # how many pixels are there?
         self.pixel_count = pixel_count
+        self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 4
 
@@ -411,6 +412,9 @@ class TLC59711Multi:
         self._init_buffer()
         # self._debug_print_buffer()
         print("-> done")
+
+        self._buffer_index_lookuptable = []
+        self._init_lookuptable()
 
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
@@ -501,15 +505,24 @@ class TLC59711Multi:
             self._chip_set_FunctionControl(chip_index)
 
     def _chip_set_WriteCommand(self, chip_index):
-        """
-        Set WRITE_COMMAND.
-        """
+        """Set WRITE_COMMAND."""
         # set all bits
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=self._WC_CHIP_BUFFER_BIT_OFFSET,
             field=self._WC_FIELDS["WRITE_COMMAND"],
             value=self.WRITE_COMMAND)
+
+    def _init_lookuptable(self):
+        for channel_index in range(self.channel_count):
+            buffer_index = (
+                (self.CHIP_BUFFER_LENGTH // self.BUFFER_BYTES_PER_COLOR)
+                * (channel_index // self.CHANNEL_PER_CHIP)
+                + channel_index % self.CHANNEL_PER_CHIP
+            )
+            buffer_index *= self.BUFFER_BYTES_PER_COLOR
+            buffer_index += self.CHIP_BUFFER_HEADER_BYTE_COUNT
+            self._buffer_index_lookuptable.append(buffer_index)
 
     ##########################################
 
@@ -680,6 +693,12 @@ class TLC59711Multi:
         buffer_index *= self.BUFFER_BYTES_PER_COLOR
         buffer_index += self.CHIP_BUFFER_HEADER_BYTE_COUNT
         self._set_16bit_value_in_buffer(buffer_index, value)
+
+    def _set_channel_16bit_value__lookup(self, channel_index, value):
+        self._set_16bit_value_in_buffer(
+            self._buffer_index_lookuptable[channel_index],
+            value
+        )
 
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
