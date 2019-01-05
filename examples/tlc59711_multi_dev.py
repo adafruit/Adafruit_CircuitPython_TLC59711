@@ -1,8 +1,9 @@
 """TLC5971 / TLC59711 Multi."""
 
 __doc__ = """
-tlc59711_multi.py - TLC59711TLC59711Multi minimal example.
+TLC59711Multi development helper.
 
+this sketch contains a bunch of timing tests and other development helpers..
 Enjoy the colors :-)
 """
 
@@ -11,7 +12,6 @@ import time
 import board
 import busio
 
-# from adafruit_tlc59711.adafruit_tlc59711 import TLC59711
 from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
 
 
@@ -52,7 +52,6 @@ def channelcheck_update_pixel():
         print("clear")
         pixels.set_pixel_all((0, 1, 0))
         pixels.show()
-    #
 
 
 def channelcheck_update():
@@ -432,6 +431,10 @@ def test_main():
     # print()
     # time.sleep(0.5)
     # print(42 * '*')
+
+    pixels.set_pixel_all_16bit_value(1, 10, 100)
+    pixels.show()
+    time.sleep(0.5)
 
     time_measurement()
     time.sleep(0.5)
