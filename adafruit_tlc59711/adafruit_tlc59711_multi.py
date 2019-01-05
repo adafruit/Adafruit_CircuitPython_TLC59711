@@ -317,8 +317,6 @@ class TLC59711Multi:
     WRITE_COMMAND = 0b100101
     ##########################################
 
-
-
     ########
     CHIP_BUFFER_HEADER_BIT_COUNT = \
         _WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT
