@@ -165,40 +165,12 @@ def time_meassurement_channel_set():
     time_meassurement_call(_test, 10)
 
 
-def time_meassurement_channel_set_lookup():
-    """Meassure timming channel set."""
-    print("channel set lookup:")
-    loop_count = 1000
-
-    def _test():
-        pixels._set_channel_16bit_value__lookup(0, 10000)
-    print("'_set_channel_16bit_value__lookup(0, 10000)'")
-    time_meassurement_call(_test, loop_count)
-
-    def _test():
-        pixels._set_channel_16bit_value__lookup(0, 10000)
-        pixels._set_channel_16bit_value__lookup(1, 10000)
-        pixels._set_channel_16bit_value__lookup(2, 10000)
-    print("'_set_channel_16bit_value__lookup(0..2, 10000)'")
-    time_meassurement_call(_test, loop_count)
-
-    def _test():
-        for i in range(pixel_count * 3):
-            pixels._set_channel_16bit_value__lookup(i, 500)
-    print(
-        "'_set_channel_16bit_value__lookup(for 0..{}, 10000)'"
-        "".format(pixel_count * 3)
-    )
-    time_meassurement_call(_test, 10)
-
-
 def time_meassurement():
     """Meassure timming."""
     print("meassure timming:")
     time_meassurement_pixels_show()
     time_meassurement_pixels_set()
     time_meassurement_channel_set()
-    time_meassurement_channel_set_lookup()
 
 ##########################################
 

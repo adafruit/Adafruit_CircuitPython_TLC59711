@@ -685,16 +685,6 @@ class TLC59711Multi:
         return value
 
     def _set_channel_16bit_value(self, channel_index, value):
-        buffer_index = (
-            (self.CHIP_BUFFER_LENGTH // self.BUFFER_BYTES_PER_COLOR)
-            * (channel_index // self.CHANNEL_PER_CHIP)
-            + channel_index % self.CHANNEL_PER_CHIP
-        )
-        buffer_index *= self.BUFFER_BYTES_PER_COLOR
-        buffer_index += self.CHIP_BUFFER_HEADER_BYTE_COUNT
-        self._set_16bit_value_in_buffer(buffer_index, value)
-
-    def _set_channel_16bit_value__lookup(self, channel_index, value):
         self._set_16bit_value_in_buffer(
             self._buffer_index_lookuptable[channel_index],
             value
