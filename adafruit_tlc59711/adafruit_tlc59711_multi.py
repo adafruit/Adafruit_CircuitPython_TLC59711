@@ -61,23 +61,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # refers to them as.
 # pylint: disable=invalid-name
 
-# Globally disable too many instance attributes check.  Again this is a case
-# where pylint doesn't have the right context to make this call.  The chip by
-# design has many channels which must be exposed.
-# pylint: disable=too-many-instance-attributes
-
-# Globally disable protected access.  Once again pylint can't figure out the
-# context for using internal decorate classes below.
-# In these cases protectected access is by design for the internal class.
-# pylint: disable=protected-access
-
-# Yet another pylint issue, it fails to recognize a decorator class by
-# definition has no public methods.  Disable the check.
-# pylint: disable=too-few-public-methods
-
-
-# this is not available in CircuitPython
-# import uctypes as ctypes
 
 class TLC59711Multi:
     """Multi TLC59711 16-bit 12 channel LED PWM driver.
@@ -222,30 +205,30 @@ class TLC59711Multi:
 
     ##########################################
     # class _FC():
-    """
-    Function Control Data (5 x 1Bit = 5Bit).
-
-    OUTTMG 1bit
-        GS clock edge select
-        1 = rising edge
-        0 = falling edge
-    EXTGCK 1bit
-        GS reference clock select
-        1 = SCKI clock
-        0 = internal oscillator
-    TMGRST 1bit
-        display timing reset mode
-        1 = OUT forced of on latchpulse
-        0 = no forced reset
-    DSPRPT 1bit
-        display repeat mode
-        1 = auto repeate
-        0 = Out only turned on after Blank or internal latchpulse
-    BLANK 1bit;
-        ic power on sets this to 1
-        1 = blank (outputs off)
-        0 = Out on - controlled by GS-Data
-    """
+    # """
+    # Function Control Data (5 x 1Bit = 5Bit).
+    #
+    # OUTTMG 1bit
+    #     GS clock edge select
+    #     1 = rising edge
+    #     0 = falling edge
+    # EXTGCK 1bit
+    #     GS reference clock select
+    #     1 = SCKI clock
+    #     0 = internal oscillator
+    # TMGRST 1bit
+    #     display timing reset mode
+    #     1 = OUT forced of on latchpulse
+    #     0 = no forced reset
+    # DSPRPT 1bit
+    #     display repeat mode
+    #     1 = auto repeate
+    #     0 = Out only turned on after Blank or internal latchpulse
+    # BLANK 1bit;
+    #     ic power on sets this to 1
+    #     1 = blank (outputs off)
+    #     0 = Out on - controlled by GS-Data
+    # """
 
     _FC_CHIP_BUFFER_BIT_OFFSET = _BC_BIT_COUNT
     _FC_BIT_COUNT = 5
@@ -279,7 +262,7 @@ class TLC59711Multi:
 
     ##########################################
     # class _WRITE_COMMAND():
-    """WRITE_COMMAND."""
+    # """WRITE_COMMAND."""
 
     _WC_CHIP_BUFFER_BIT_OFFSET = _FC_BIT_COUNT + _BC_BIT_COUNT
     _WC_BIT_COUNT = 6
