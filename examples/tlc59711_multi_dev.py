@@ -463,11 +463,16 @@ def test_BCData():
     print("Ioclmax = {}".format(Ioclmax))
     Riref = TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
     print("Riref = {}".format(Riref))
-    BCValues = TLC59711Multi.calculate_BCData(Ioclmax=Ioclmax)
-    # (62, 103, 117)
+    BCValues = TLC59711Multi.calculate_BCData(
+        Ioclmax=Ioclmax,
+        IoutR=18,
+        IoutG=11,
+        IoutB=13,
+    )
+    # (127, 77, 91)
     print("BCValues = {}".format(BCValues))
 
-    print("set bcX to {}".format(BCValues))
+    print("set bcX")
     pixels.bcr = BCValues[0]
     pixels.bcg = BCValues[1]
     pixels.bcb = BCValues[2]

@@ -602,10 +602,10 @@ class TLC59711Multi:
     @staticmethod
     def calculate_BCData(
             *,
-            Ioclmax=20,
-            IoutR=9,
+            Ioclmax=18,
+            IoutR=17,
             IoutG=15,
-            IoutB=17
+            IoutB=9
     ):
         """
         Calculate Global Brightness Control Values.

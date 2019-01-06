@@ -25,6 +25,49 @@ pixels = TLC59711Multi(spi, pixel_count=pixel_count)
 ##########################################
 
 
+def main_loop():
+    """Loop."""
+    new_value = input()
+    if "v" in new_value:
+        try:
+            value = int(new_value[1:])
+        except ValueError as e:
+            print("Exception: ", e)
+        pixels.set_pixel_all_16bit_value(value, value, value)
+    else:
+        try:
+            Ioclmax, IoutR, IoutG, IoutB = new_value.split(';')
+            Ioclmax = float(Ioclmax)
+            IoutR = float(IoutR)
+            IoutG = float(IoutG)
+            IoutB = float(IoutB)
+        except ValueError as e:
+            print("Exception: ", e)
+        BCValues = TLC59711Multi.calculate_BCData(
+            Ioclmax=Ioclmax,
+            IoutR=IoutR,
+            IoutG=IoutG,
+            IoutB=IoutB,
+        )
+        pixels.bcr = BCValues[0]
+        pixels.bcg = BCValues[1]
+        pixels.bcb = BCValues[2]
+        print(
+            "bcr: {:>3}\n"
+            "bcg: {:>3}\n"
+            "bcb: {:>3}\n"
+            "".format(
+                pixels.bcr,
+                pixels.bcg,
+                pixels.bcb,
+            )
+        )
+        pixels.update_BCData()
+    pixels.show()
+    # prepare new input
+    print("\nenter new values:")
+
+
 def test_main():
     """Test Main."""
     print(42 * '*', end="")
@@ -35,17 +78,24 @@ def test_main():
     # print(42 * '*')
 
     print("set pixel all to 100, 100, 100")
-    pixels.set_pixel_all((1000, 1000, 1000))
-    print(
-        "bcr: {:>3}\n"
-        "bcg: {:>3}\n"
-        "bcb: {:>3}\n"
-        "".format(
-            pixels.bcr,
-            pixels.bcg,
-            pixels.bcb,
-        )
+    pixels.set_pixel_all((5000, 5000, 5000))
+    # calculate bc values
+    Ioclmax = TLC59711Multi.calculate_Ioclmax(Riref=2.7)
+    print("Ioclmax = {}".format(Ioclmax))
+    Riref = TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
+    print("Riref = {}".format(Riref))
+    BCValues = TLC59711Multi.calculate_BCData(
+        Ioclmax=Ioclmax,
+        IoutR=18,
+        IoutG=11,
+        IoutB=13,
     )
+    # (127, 77, 91)
+    print("BCValues = {}".format(BCValues))
+    pixels.bcr = BCValues[0]
+    pixels.bcg = BCValues[1]
+    pixels.bcb = BCValues[2]
+    pixels.update_BCData()
     pixels.show()
     time.sleep(0.1)
 
@@ -57,45 +107,7 @@ def test_main():
         )
     while True:
         if supervisor.runtime.serial_bytes_available:
-            new_value = input()
-            if "v" in new_value:
-                try:
-                    value = int(new_value[1:])
-                except ValueError as e:
-                    print("Exception: ", e)
-                pixels.set_pixel_all_16bit_value(value, value, value)
-            else:
-                try:
-                    Ioclmax, IoutR, IoutG, IoutB = new_value.split(';')
-                    Ioclmax = float(Ioclmax)
-                    IoutR = float(IoutR)
-                    IoutG = float(IoutG)
-                    IoutB = float(IoutB)
-                except ValueError as e:
-                    print("Exception: ", e)
-                BCValues = TLC59711Multi.calculate_BCData(
-                    Ioclmax=Ioclmax,
-                    IoutR=IoutR,
-                    IoutG=IoutG,
-                    IoutB=IoutB,
-                )
-                pixels.bcr = BCValues[0]
-                pixels.bcg = BCValues[1]
-                pixels.bcb = BCValues[2]
-                print(
-                    "bcr: {:>3}\n"
-                    "bcg: {:>3}\n"
-                    "bcb: {:>3}\n"
-                    "".format(
-                        pixels.bcr,
-                        pixels.bcg,
-                        pixels.bcb,
-                    )
-                )
-                pixels.update_BCData()
-            pixels.show()
-            # prepare new input
-            print("\nenter new values:")
+            main_loop()
 
 
 ##########################################
