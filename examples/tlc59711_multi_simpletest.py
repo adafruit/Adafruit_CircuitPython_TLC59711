@@ -25,12 +25,8 @@ pixels = TLC59711Multi(spi, pixel_count=pixel_count)
 ##########################################
 # test function
 
-offset = 0
-
-
-def channelcheck_update_pixel():
+def channelcheck_update_pixel(offset):
     """Channel check pixel."""
-    global offset  #noqa
     # print("offset", offset)
 
     pixels.set_pixel_16bit_value(offset, 1000, 100, 0)
@@ -48,11 +44,11 @@ def channelcheck_update_pixel():
         print("clear")
         pixels.set_pixel_all((0, 1, 0))
         pixels.show()
+    return offset
 
 
-def channelcheck_update():
+def channelcheck_update(offset):
     """Channel check."""
-    global offset  #noqa
     # print("offset", offset)
 
     pixels.set_channel(offset, 1000)
@@ -66,6 +62,7 @@ def channelcheck_update():
     offset += 1
     if offset >= pixels.channel_count:
         offset = 0
+    return offset
 
 
 def test_main():
@@ -87,9 +84,12 @@ def test_main():
     pixels.update_BCData()
     pixels.show()
 
+    offset = 0
+
     print("loop:")
     while True:
-        channelcheck_update_pixel()
+        offset = channelcheck_update_pixel(offset)
+        # offset = channelcheck_update(offset)
         time.sleep(0.2)
         # channelcheck_update()
 

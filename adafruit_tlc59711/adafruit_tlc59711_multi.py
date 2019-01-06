@@ -94,63 +94,63 @@ class TLC59711Multi:
     :param bool pixel_count: Number of RGB-LEDs (=Pixels) are connected.
     """
 
-    """
-    TLC5971 data / register structure
-
-    some detailed information on the protocol based on
-    http://www.ti.com/lit/ds/symlink/tlc5971.pdf
-    8.5.4 Register and Data Latch Configuration (page 23ff)
-    9.2.2.3 How to Control the TLC5971 (page27)
-
-    How to send:
-    the first data we send are received by the last device in chain.
-    Device Nth (244Bit = 28Byte)
-    Write Command (6Bit)
-        WRCMD (fixed: 25h)
-    Function Control Data (5 x 1Bit = 5Bit)
-        OUTTMG 1bit
-            GS clock edge select
-            1=rising edge, 0= falling edge
-        EXTGCK 1bit
-            GS reference clock select
-            1=SCKI clock, 0=internal oscillator
-        TMGRST 1bit
-            display timing reset mode
-            1=OUT forced of on latchpulse, 0=no forced reset
-        DSPRPT 1bit
-            display repeat mode
-            1=auto repeate
-            0=Out only turned on after Blank or internal latchpulse
-        BLANK 1bit;
-            1=blank (outputs off)
-            0=Out on - controlled by GS-Data
-            ic power on sets this to 1
-    BC-Data (3 x 7Bits = 21Bit)
-        BCB 7bit;
-        BCG 7bit;
-        BCR 7bit;
-    GS-Data (12 x 16Bits = 192Bit)
-        GSB3 16bit;
-        GSG3 16bit;
-        GSR3 16bit;
-        GSB2 16bit;
-        GSG2 16bit;
-        GSR2 16bit;
-        GSB1 16bit;
-        GSG1 16bit;
-        GSR1 16bit;
-        GSB0 16bit;
-        GSG0 16bit;
-        GSR0 16bit;
-    Device Nth-1 (244Bit = 28Byte)
-        Device ..
-        Device 2
-        Device 1
-        short break of 8x period of clock (666ns .. 2.74ms)
-        to generate latchpulse
-        + 1.34uS
-        than next update.
-    """
+    # """
+    # TLC5971 data / register structure
+    #
+    # some detailed information on the protocol based on
+    # http://www.ti.com/lit/ds/symlink/tlc5971.pdf
+    # 8.5.4 Register and Data Latch Configuration (page 23ff)
+    # 9.2.2.3 How to Control the TLC5971 (page27)
+    #
+    # How to send:
+    # the first data we send are received by the last device in chain.
+    # Device Nth (244Bit = 28Byte)
+    # Write Command (6Bit)
+    #     WRCMD (fixed: 25h)
+    # Function Control Data (5 x 1Bit = 5Bit)
+    #     OUTTMG 1bit
+    #         GS clock edge select
+    #         1=rising edge, 0= falling edge
+    #     EXTGCK 1bit
+    #         GS reference clock select
+    #         1=SCKI clock, 0=internal oscillator
+    #     TMGRST 1bit
+    #         display timing reset mode
+    #         1=OUT forced of on latchpulse, 0=no forced reset
+    #     DSPRPT 1bit
+    #         display repeat mode
+    #         1=auto repeate
+    #         0=Out only turned on after Blank or internal latchpulse
+    #     BLANK 1bit;
+    #         1=blank (outputs off)
+    #         0=Out on - controlled by GS-Data
+    #         ic power on sets this to 1
+    # BC-Data (3 x 7Bits = 21Bit)
+    #     BCB 7bit;
+    #     BCG 7bit;
+    #     BCR 7bit;
+    # GS-Data (12 x 16Bits = 192Bit)
+    #     GSB3 16bit;
+    #     GSG3 16bit;
+    #     GSR3 16bit;
+    #     GSB2 16bit;
+    #     GSG2 16bit;
+    #     GSR2 16bit;
+    #     GSB1 16bit;
+    #     GSG1 16bit;
+    #     GSR1 16bit;
+    #     GSB0 16bit;
+    #     GSG0 16bit;
+    #     GSR0 16bit;
+    # Device Nth-1 (244Bit = 28Byte)
+    #     Device ..
+    #     Device 2
+    #     Device 1
+    #     short break of 8x period of clock (666ns .. 2.74ms)
+    #     to generate latchpulse
+    #     + 1.34uS
+    #     than next update.
+    # """
 
     ##########################################
     # helper
@@ -194,13 +194,11 @@ class TLC59711Multi:
 
     ##########################################
     # class _BC():
-    """
-    BC-Data (3 x 7Bits = 21Bit).
-
-    BCB 7bit;
-    BCG 7bit;
-    BCR 7bit;
-    """
+    # BC-Data (3 x 7Bits = 21Bit).
+    #
+    # BCB 7bit;
+    # BCG 7bit;
+    # BCR 7bit;
     _BC_CHIP_BUFFER_BIT_OFFSET = 0
     _BC_BIT_COUNT = 3 * 7
     # this holds the chip offset and
