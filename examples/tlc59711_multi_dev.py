@@ -25,13 +25,11 @@ pixels = TLC59711Multi(spi, pixel_count=pixel_count)
 ##########################################
 # test function
 
-offset = 0
 value_high = 1000
 
 
-def channelcheck_update_pixel():
+def channelcheck_update_pixel(offset):
     """Channel check pixel."""
-    global offset  #noqa
     # print("offset", offset)
 
     # pixels[offset] = (value_high, 0, 0)
@@ -52,11 +50,11 @@ def channelcheck_update_pixel():
         print("clear")
         pixels.set_pixel_all((0, 1, 0))
         pixels.show()
+    return offset
 
 
-def channelcheck_update():
+def channelcheck_update(offset):
     """Channel check."""
-    global offset  #noqa
     # print("offset", offset)
 
     pixels.set_channel(offset, value_high)
@@ -70,6 +68,7 @@ def channelcheck_update():
     offset += 1
     if offset >= pixels.channel_count:
         offset = 0
+    return offset
 
 
 ##########################################
@@ -375,35 +374,36 @@ def time_measurement_channel_set():
 def time_measurement_channel_set_internal():
     """Measure timing channel set internal."""
     print("*** channel set internal:")
-    loop_count = 1000
-
-    def _test():
-        pixels._set_channel_16bit_value(0, 10000)
-    time_measurement_call(
-        "'_set_channel_16bit_value(0, 10000)'",
-        _test,
-        loop_count
-    )
-
-    def _test():
-        pixels._set_channel_16bit_value(0, 10000)
-        pixels._set_channel_16bit_value(1, 10000)
-        pixels._set_channel_16bit_value(2, 10000)
-    time_measurement_call(
-        "'_set_channel_16bit_value(0..2, 10000)'",
-        _test,
-        loop_count
-    )
-
-    def _test():
-        for i in range(pixel_count * 3):
-            pixels._set_channel_16bit_value(i, 500)
-    time_measurement_call(
-        "'_set_channel_16bit_value(for 0..{}, 10000)'"
-        "".format(pixel_count * 3),
-        _test,
-        10
-    )
+    # loop_count = 1000
+    #
+    # def _test():
+    #     pixels._set_channel_16bit_value(0, 10000)
+    # time_measurement_call(
+    #     "'_set_channel_16bit_value(0, 10000)'",
+    #     _test,
+    #     loop_count
+    # )
+    #
+    # def _test():
+    #     pixels._set_channel_16bit_value(0, 10000)
+    #     pixels._set_channel_16bit_value(1, 10000)
+    #     pixels._set_channel_16bit_value(2, 10000)
+    # time_measurement_call(
+    #     "'_set_channel_16bit_value(0..2, 10000)'",
+    #     _test,
+    #     loop_count
+    # )
+    #
+    # def _test():
+    #     for i in range(pixel_count * 3):
+    #         pixels._set_channel_16bit_value(i, 500)
+    # time_measurement_call(
+    #     "'_set_channel_16bit_value(for 0..{}, 10000)'"
+    #     "".format(pixel_count * 3),
+    #     _test,
+    #     10
+    # )
+    print("    must be uncommented in code to work..")
 
 
 def time_measurement_pixels_get():
@@ -514,9 +514,11 @@ def test_main():
     time.sleep(0.5)
     print(42 * '*')
 
+    offset = 0
+
     print("loop:")
     while True:
-        channelcheck_update()
+        offset = channelcheck_update(offset)
         time.sleep(0.5)
 
 

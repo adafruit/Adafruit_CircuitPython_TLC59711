@@ -304,7 +304,7 @@ class TLC59711Multi:
 
     def set_chipheader_bits_in_buffer(
             self,
-            *, # noqa
+            *,
             chip_index=0,
             part_bit_offset=0,
             field={"mask": 0, "length": 0, "offset": 0},
