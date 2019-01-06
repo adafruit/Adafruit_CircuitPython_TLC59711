@@ -10,8 +10,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.org/adafruit/Adafruit_CircuitPython_TLC59711.svg?branch=master
-    :target: https://travis-ci.org/adafruit/Adafruit_CircuitPython_TLC59711
+.. image:: https://travis-ci.com/adafruit/Adafruit_CircuitPython_TLC59711.svg?branch=master
+    :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_TLC59711
     :alt: Build Status
 
 CircuitPython module for the TLC59711 16-bit 12 channel LED PWM driver.
