@@ -73,6 +73,20 @@ def test_main():
     print(42 * '*', end="")
     print(__doc__, end="")
     print(42 * '*')
+
+    BCValues = TLC59711Multi.calculate_BCData(
+        Ioclmax=18,
+        IoutR=18,
+        IoutG=11,
+        IoutB=13,
+    )
+    print("BCValues = {}".format(BCValues))
+    pixels.bcr = BCValues[0]
+    pixels.bcg = BCValues[1]
+    pixels.bcb = BCValues[2]
+    pixels.update_BCData()
+    pixels.show()
+
     print("loop:")
     while True:
         channelcheck_update_pixel()

@@ -634,17 +634,17 @@ class TLC59711Multi:
                 "Ioclmax {} not in range: 2mA..60mA"
                 "".format(Ioclmax)
             )
-        if not 2.0 <= IoutR <= Ioclmax:
+        if not 0.0 <= IoutR <= Ioclmax:
             raise ValueError(
                 "IoutR {} not in range: 2mA..{}mA"
                 "".format(IoutR, Ioclmax)
             )
-        if not 2.0 <= IoutG <= Ioclmax:
+        if not 0.0 <= IoutG <= Ioclmax:
             raise ValueError(
                 "IoutG {} not in range: 2mA..{}mA"
                 "".format(IoutG, Ioclmax)
             )
-        if not 2.0 <= IoutB <= Ioclmax:
+        if not 0.0 <= IoutB <= Ioclmax:
             raise ValueError(
                 "IoutB {} not in range: 2mA..{}mA"
                 "".format(IoutB, Ioclmax)

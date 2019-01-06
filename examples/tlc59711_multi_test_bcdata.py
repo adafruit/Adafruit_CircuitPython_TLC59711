@@ -35,6 +35,7 @@ def main_loop():
             print("Exception: ", e)
         pixels.set_pixel_all_16bit_value(value, value, value)
     else:
+        Ioclmax, IoutR, IoutG, IoutB = (18, 18, 11, 13)
         try:
             Ioclmax, IoutR, IoutG, IoutB = new_value.split(';')
             Ioclmax = float(Ioclmax)
