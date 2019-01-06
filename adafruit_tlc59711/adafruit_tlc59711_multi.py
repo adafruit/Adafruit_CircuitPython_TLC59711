@@ -89,8 +89,8 @@ class TLC59711Multi:
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
         The clock and MOSI/outout must be set, the MISO/input is unused.
         Maximal data clock frequence is:
-            - TLC59711: 10MHz
-            - TLC5971: 20MHz
+        - TLC59711: 10MHz
+        - TLC5971: 20MHz
     :param bool pixel_count: Number of RGB-LEDs (=Pixels) are connected.
     """
 
@@ -884,7 +884,7 @@ class TLC59711Multi:
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
-    def set_pixel_16bit_color(self, pixel_index, value):
+    def set_pixel_16bit_color(self, pixel_index, color):
         """
         Set color for pixel.
 
@@ -893,20 +893,20 @@ class TLC59711Multi:
         its a little bit slower as `set_pixel_16bit_value`
 
         :param int pixel_index: 0..(pixel_count)
-        :param int 3-tuple of R, G, B;  0..65535
+        :param int color: 3-tuple of R, G, B;  0..65535
         """
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
-        self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[2] & 0xFF
+        self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[2] & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
-        self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[1] & 0xFF
+        self._buffer[buffer_start + 0] = (color[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[1] & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
-        self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[0] & 0xFF
+        self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[0] & 0xFF
 
-    def set_pixel_float_color(self, pixel_index, value):
+    def set_pixel_float_color(self, pixel_index, color):
         """
         Set color for pixel.
 
@@ -915,12 +915,12 @@ class TLC59711Multi:
         its a little bit slower as `set_pixel_16bit_value`
 
         :param int pixel_index: 0..(pixel_count)
-        :param tuple/float 3-tuple of R, G, B;  0..1
+        :param tuple/float color: 3-tuple of R, G, B;  0..1
         """
         # convert to 16bit int
-        value_r = int(value[0] * 65535)
-        value_g = int(value[1] * 65535)
-        value_b = int(value[2] * 65535)
+        value_r = int(color[0] * 65535)
+        value_g = int(color[1] * 65535)
+        value_b = int(color[2] * 65535)
         # calculate pixel_start
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         # set values
@@ -943,7 +943,8 @@ class TLC59711Multi:
         but therefor gives clues to what is going wrong.. ;-)
 
         :param int pixel_index: 0..(pixel_count)
-        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        :param tuple value: 3-tuple of R, G, B;
+            each int 0..65535 or float 0..1
         """
         if 0 <= pixel_index < self.pixel_count:
             # print("value", value)
