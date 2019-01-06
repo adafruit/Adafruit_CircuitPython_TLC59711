@@ -295,10 +295,28 @@ def time_measurement_pixels_set_float():
     )
 
     def _test():
+        pixels.set_pixel_float_color(3, (0.1, 0.5, 0.9))
+    time_measurement_call(
+        "'pixels.set_pixel_float_color(3, (0.1, 0.5, 0.9))'",
+        _test,
+        loop_count
+    )
+
+    def _test():
         for i in range(pixel_count):
             pixels.set_pixel_float_value(i, 0.1, 0.5, 0.9)
     time_measurement_call(
         "'pixels.set_pixel_float_value(0..{}, 0.1, 0.5, 0.9)'"
+        "".format(pixel_count),
+        _test,
+        10
+    )
+
+    def _test():
+        for i in range(pixel_count):
+            pixels.set_pixel_float_color(i, (0.1, 0.5, 0.9))
+    time_measurement_call(
+        "'pixels.set_pixel_float_color(0..{}, (0.1, 0.5, 0.9))'"
         "".format(pixel_count),
         _test,
         10
@@ -423,6 +441,53 @@ def time_measurement():
 ##########################################
 
 
+def test_BCData():
+    """Test BC-Data setting."""
+    print("test BC-Data setting:")
+    print("set pixel all to 100, 100, 100")
+    pixels.set_pixel_all((100, 100, 100))
+    pixels.show()
+    time.sleep(2)
+    print(
+        "bcr: {:>3}\n"
+        "bcg: {:>3}\n"
+        "bcb: {:>3}\n"
+        "".format(
+            pixels.bcr,
+            pixels.bcg,
+            pixels.bcb,
+        )
+    )
+    # calculate bc values
+    Ioclmax = TLC59711Multi.calculate_Ioclmax(Riref=2.7)
+    print("Ioclmax = {}".format(Ioclmax))
+    Riref = TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
+    print("Riref = {}".format(Riref))
+    BCValues = TLC59711Multi.calculate_BCData(Ioclmax=Ioclmax)
+    # (62, 103, 117)
+    print("BCValues = {}".format(BCValues))
+
+    print("set bcX to {}".format(BCValues))
+    pixels.bcr = BCValues[0]
+    pixels.bcg = BCValues[1]
+    pixels.bcb = BCValues[2]
+    pixels.update_BCData()
+    pixels.show()
+    print(
+        "bcr: {:>3}\n"
+        "bcg: {:>3}\n"
+        "bcb: {:>3}\n"
+        "".format(
+            pixels.bcr,
+            pixels.bcg,
+            pixels.bcb,
+        )
+    )
+    time.sleep(2)
+
+##########################################
+
+
 def test_main():
     """Test Main."""
     print(42 * '*', end="")
@@ -436,12 +501,15 @@ def test_main():
     pixels.show()
     time.sleep(0.5)
 
+    test_BCData()
+    time.sleep(0.5)
+    print(42 * '*')
+
     time_measurement()
     time.sleep(0.5)
     print(42 * '*')
-    print()
-    print("loop:")
 
+    print("loop:")
     while True:
         channelcheck_update()
         time.sleep(0.5)

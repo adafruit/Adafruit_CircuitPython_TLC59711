@@ -205,7 +205,7 @@ class TLC59711Multi:
     _BC_BIT_COUNT = 3 * 7
     # this holds the chip offset and
     _BC_FIELDS = {
-        "BCB": {
+        "BCR": {
             "offset": 0,
             "length": 7,
             "mask": 0b01111111,
@@ -215,7 +215,7 @@ class TLC59711Multi:
             "length": 7,
             "mask": 0b01111111,
         },
-        "BCR": {
+        "BCB": {
             "offset": 14,
             "length": 7,
             "mask": 0b01111111,
@@ -354,16 +354,16 @@ class TLC59711Multi:
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 4
 
-        # THe chips are just a big 28 byte long shift register without any
+        # The chips are just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
         self._buffer = bytearray(self.CHIP_BUFFER_LENGTH * self.chip_count)
 
-        # Initialize the brightness channel values to max (these are 7-bit
-        # values).
-        self._bcr = 127
-        self._bcg = 127
-        self._bcb = 127
+        # Initialize the brightness channel values to max
+        # (these are 7-bit values).
+        self.bcr = 127
+        self.bcg = 127
+        self.bcb = 127
 
         # Initialize external user-facing state for the function control
         # bits of the chip.  These aren't commonly used but available and
@@ -400,7 +400,7 @@ class TLC59711Multi:
 
             # self._debug_print_buffer()
             self.chip_set_BCData(
-                chip_index, bcr=self._bcr, bcg=self._bcg, bcb=self._bcb)
+                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
             # self._debug_print_buffer()
             self._chip_set_FunctionControl(chip_index)
             # self._debug_print_buffer()
@@ -433,6 +433,17 @@ class TLC59711Multi:
             part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCB"],
             value=bcb)
+
+    def update_BCData(self):
+        """
+        Update BC-Data for all Chips in Buffer.
+
+        need to be called after you changed on of the
+        BC-Data Parameters. (bcr, bcg, bcb)
+        """
+        for chip_index in range(self.chip_count):
+            self.chip_set_BCData(
+                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
 
     def _chip_set_FunctionControl(self, chip_index):
         """
@@ -519,6 +530,147 @@ class TLC59711Multi:
         """Write out the current LED PWM state to the chip."""
         self._write()
 
+    ##########################################
+
+    @staticmethod
+    def calculate_Ioclmax(
+            *,
+            Riref=2.48,
+    ):
+        """
+        Calculate Maximum Constant Sink Current Value.
+
+        see:
+        8.4.1 Maximum Constant Sink Current Setting
+        http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=18&zoom=160,0,524
+
+        Riref = (Viref / Ioclmax) * 41
+        Ioclmax = (41 / Riref) * Viref
+
+        :param float Riref: resistor value (kΩ) (default=20)
+        :return tuple: Ioclmax (mA)
+        """
+        # Riref                 = (Viref / Ioclmax) * 41    | / 41
+        # Riref / 41            = Viref / Ioclmax           | switch
+        # 41 / Riref            = Ioclmax / Viref           | * Viref
+        # (41 / Riref) * Viref  = Ioclmax
+        if not 0.8 <= Riref <= 24.8:
+            raise ValueError(
+                "Riref {} not in range: 0.8kΩ..25kΩ"
+                "".format(Riref)
+            )
+        Viref = 1.21
+        Ioclmax = (41 / Riref) * Viref
+        if not 2.0 <= Ioclmax <= 60.0:
+            raise ValueError(
+                "Ioclmax {} not in range: 2mA..60mA"
+                "".format(Ioclmax)
+            )
+        return Ioclmax
+
+    @staticmethod
+    def calculate_Riref(
+            *,
+            Ioclmax=20,
+    ):
+        """
+        Calculate Maximum Constant Sink Current Value.
+
+        see:
+        8.4.1 Maximum Constant Sink Current Setting
+        http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=19&zoom=200,0,697
+
+        Riref = (Viref / Ioclmax) * 41
+
+        :param float Ioclmax: target max output current (mA) (default=20)
+        :return tuple: Riref (kΩ)
+        """
+        if not 2.0 <= Ioclmax <= 60.0:
+            raise ValueError(
+                "Ioclmax {} not in range: 2mA..60mA"
+                "".format(Ioclmax)
+            )
+        Viref = 1.21
+        Riref = (Viref / Ioclmax) * 41
+        if not 0.8 <= Riref <= 24.8:
+            raise ValueError(
+                "Riref {} not in range: 0.8kΩ..25kΩ"
+                "".format(Riref)
+            )
+        return Riref
+
+    @staticmethod
+    def calculate_BCData(
+            *,
+            Ioclmax=20,
+            IoutR=9,
+            IoutG=15,
+            IoutB=17
+    ):
+        """
+        Calculate Global Brightness Control Values.
+
+        see:
+        8.5.1 Global Brightness Control (BC) Function (Sink Current Control)
+        http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=19&zoom=200,0,697
+
+        Iout = Ioclmax * (BCX / 127)
+        BCX = Iout / Ioclmax * 127
+
+        :param float Ioclmax: max output current set by Riref (mA) (default=20)
+        :param float IoutR: max output current for red color group (mA)
+            (default=9)
+        :param float IoutG: max output current for green color (mA)
+            (default=15)
+        :param float IoutB: max output current for blue color (mA)
+            (default=17)
+        :return tuple: (bcr, bcg, bcb)
+        """
+        # Iout                 =  Ioclmax * (BCX / 127)  | / Ioclmax
+        # Iout / Ioclmax       =  BCX / 127              | * 127
+        # Iout / Ioclmax * 127 =  BCX
+        if not 2.0 <= Ioclmax <= 60.0:
+            raise ValueError(
+                "Ioclmax {} not in range: 2mA..60mA"
+                "".format(Ioclmax)
+            )
+        if not 2.0 <= IoutR <= Ioclmax:
+            raise ValueError(
+                "IoutR {} not in range: 2mA..{}mA"
+                "".format(IoutR, Ioclmax)
+            )
+        if not 2.0 <= IoutG <= Ioclmax:
+            raise ValueError(
+                "IoutG {} not in range: 2mA..{}mA"
+                "".format(IoutG, Ioclmax)
+            )
+        if not 2.0 <= IoutB <= Ioclmax:
+            raise ValueError(
+                "IoutB {} not in range: 2mA..{}mA"
+                "".format(IoutB, Ioclmax)
+            )
+        bcr = int((IoutR / Ioclmax) * 127)
+        bcg = int((IoutG / Ioclmax) * 127)
+        bcb = int((IoutB / Ioclmax) * 127)
+        if not 0 <= bcr <= 127:
+            raise ValueError(
+                "bcr {} not in range: 0..127"
+                "".format(bcr)
+            )
+        if not 0 <= bcg <= 127:
+            raise ValueError(
+                "bcg {} not in range: 0..127"
+                "".format(bcg)
+            )
+        if not 0 <= bcb <= 127:
+            raise ValueError(
+                "bcb {} not in range: 0..127"
+                "".format(bcb)
+            )
+        return (bcr, bcg, bcb)
+
+    ##########################################
+
     def _debug_print_buffer(self):
         indent = "  "
         if self.chip_count == 1:
@@ -565,57 +717,6 @@ class TLC59711Multi:
         ):
             print("x{:02X}, ".format(self._buffer[index]), end="")
         print("]", end="")
-
-    ##########################################
-
-    # Define properties for global brightness control channels.
-    # @property
-    # def red_brightness(self):
-    #     """
-    #     Red brightness for all channels on all chips.
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcr
-    #
-    # @red_brightness.setter
-    # def red_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcr = val
-    #     if self.auto_show:
-    #         self._write()
-    #
-    # @property
-    # def green_brightness(self):
-    #     """
-    #     Green brightness for all channels on all chips.
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcg
-    #
-    # @green_brightness.setter
-    # def green_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcg = val
-    #     if self.auto_show:
-    #         self._write()
-    #
-    # @property
-    # def blue_brightness(self):
-    #     """
-    #     Blue brightness for all channels on all chips.
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcb
-    #
-    # @blue_brightness.setter
-    # def blue_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcb = val
-    #     if self.auto_show:
-    #         self._write()
 
     ##########################################
 
@@ -729,14 +830,10 @@ class TLC59711Multi:
         )
 
     def _set_channel_16bit_value(self, channel_index, value):
-        # self._set_16bit_value_in_buffer(
-        #     self._buffer_index_lookuptable[channel_index],
-        #     value
-        # )
-        # optimized:
-        buffer_start = self._buffer_index_lookuptable[channel_index]
-        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value & 0xFF
+        self._set_16bit_value_in_buffer(
+            self._buffer_index_lookuptable[channel_index],
+            value
+        )
 
     def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
         """
@@ -820,40 +917,22 @@ class TLC59711Multi:
         :param int pixel_index: 0..(pixel_count)
         :param tuple/float 3-tuple of R, G, B;  0..1
         """
-        # convert tuple to list
-        # this way we can assign values.
-        # this seems faster than creating tree new variables
-        value = list(value)
         # convert to 16bit int
-        value[0] = int(value[0] * 65535)
-        value[1] = int(value[1] * 65535)
-        value[2] = int(value[2] * 65535)
+        value_r = int(value[0] * 65535)
+        value_g = int(value[1] * 65535)
+        value_b = int(value[2] * 65535)
         # calculate pixel_start
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         # set values
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
-        self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[2] & 0xFF
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
-        self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[1] & 0xFF
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
-        self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value[0] & 0xFF
-
-        # value_r = int(value[0] * 65535)
-        # value_g = int(value[1] * 65535)
-        # value_b = int(value[2] * 65535)
-        # pixel_start = pixel_index * self.COLORS_PER_PIXEL
-        # buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
-        # self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_b & 0xFF
-        # buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
-        # self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_g & 0xFF
-        # buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
-        # self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_r & 0xFF
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
 
     def set_pixel(self, pixel_index, value):
         """
@@ -881,34 +960,13 @@ class TLC59711Multi:
                 )
             # tested:
             # splitting up into variables to not need the list..
-            # this is about 0.25ms slower!
+            # this is about 0.25ms slower..
             # value_r = value[0]
             # value_g = value[1]
             # value_b = value[2]
 
             # check if we have float values
-            # value[0] = self._convert_if_float(value[0])
-            # value[1] = self._convert_if_float(value[1])
-            # value[2] = self._convert_if_float(value[2])
-            # check range
-            # if not 0 <= value[0] <= 65535:
-            #     raise ValueError(
-            #         "value[0] {} not in range: 0..65535"
-            #         "".format(value[0])
-            #     )
-            # if not 0 <= value[1] <= 65535:
-            #     raise ValueError(
-            #         "value[1] {} not in range: 0..65535"
-            #         "".format(value[1])
-            #     )
-            # if not 0 <= value[2] <= 65535:
-            #     raise ValueError(
-            #         "value[2] {} not in range: 0..65535"
-            #         "".format(value[2])
-            #     )
-
-            # optimized:
-            # this modifies value in place..
+            # this modifies 'value' in place..
             self._check_and_convert(value)
 
             # print("value", value)
@@ -926,16 +984,6 @@ class TLC59711Multi:
             #     value[1])
             # self._set_channel_16bit_value(
             #     pixel_start + 2,
-            #     value[0])
-            # optimize:
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 0],
-            #     value[2])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 1],
-            #     value[1])
-            # self._set_16bit_value_in_buffer(
-            #     self._buffer_index_lookuptable[pixel_start + 2],
             #     value[0])
             # optimize2
             buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
