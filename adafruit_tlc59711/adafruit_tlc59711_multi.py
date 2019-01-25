@@ -139,11 +139,12 @@ class TLC59711Multi:
     # helper
     ##########################################
 
-    CHIP_BUFFER_LENGTH = 28
+    CHIP_BUFFER_BYTE_COUNT = 28
 
     COLORS_PER_PIXEL = 3
     PIXEL_PER_CHIP = 4
     CHANNEL_PER_CHIP = COLORS_PER_PIXEL * PIXEL_PER_CHIP
+
     BUFFER_BYTES_PER_COLOR = 2
     BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL
 
@@ -310,7 +311,7 @@ class TLC59711Multi:
         # move value to position
         value = value << offset
         # calculate header start
-        header_start = chip_index * self.CHIP_BUFFER_LENGTH
+        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
         # get chip header
         header = self._get_32bit_value_from_buffer(header_start)
         # print("{:032b}".format(header))
@@ -338,7 +339,7 @@ class TLC59711Multi:
         # The chips are just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
-        self._buffer = bytearray(self.CHIP_BUFFER_LENGTH * self.chip_count)
+        self._buffer = bytearray(self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
 
         # Initialize the brightness channel values to max
         # (these are 7-bit values).
@@ -376,7 +377,7 @@ class TLC59711Multi:
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            # buffer_start = chip_index * self.CHIP_BUFFER_LENGTH
+            # buffer_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
             # self._buffer[buffer_start] = 0x25 << 2
 
             # self._debug_print_buffer()
@@ -484,7 +485,7 @@ class TLC59711Multi:
     def _init_lookuptable(self):
         for channel_index in range(self.channel_count):
             buffer_index = (
-                (self.CHIP_BUFFER_LENGTH // self.BUFFER_BYTES_PER_COLOR)
+                (self.CHIP_BUFFER_BYTE_COUNT // self.BUFFER_BYTES_PER_COLOR)
                 * (channel_index // self.CHANNEL_PER_CHIP)
                 + channel_index % self.CHANNEL_PER_CHIP
             )
