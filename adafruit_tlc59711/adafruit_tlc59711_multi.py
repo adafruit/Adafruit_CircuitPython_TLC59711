@@ -1016,7 +1016,7 @@ class TLC59711Multi:
         """
         Set the value for the provided channel.
 
-        :param int channel_index: 0..(channel_count)
+        :param int channel_index: 0..channel_count
         :param int value: 0..65535
         """
         if 0 <= channel_index < (self.channel_count):
