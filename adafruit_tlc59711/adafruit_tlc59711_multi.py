@@ -150,33 +150,33 @@ class TLC59711Multi:
     _BUFFER_BYTES_PER_COLOR = const(2)
     _BUFFER_BYTES_PER_PIXEL = const(_BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL)
 
-    @staticmethod
-    def set_bit_with_mask(v, mask, x):
-        """Set bit with help of mask."""
-        # clear
-        v &= ~mask
-        if x:
-            # set
-            v |= mask
-        return v
-
-    @staticmethod
-    def set_bit(v, index, x):
-        """Set bit - return new value.
-
-        Set the index:th bit of v to 1 if x is truthy,
-        else to 0, and return the new value.
-        https://stackoverflow.com/a/12174051/574981
-        """
-        # Compute mask, an integer with just bit 'index' set.
-        mask = 1 << index
-        # Clear the bit indicated by the mask (if x is False)
-        v &= ~mask
-        if x:
-            # If x was True, set the bit indicated by the mask.
-            v |= mask
-        # Return the result, we're done.
-        return v
+    # @staticmethod
+    # def set_bit_with_mask(v, mask, x):
+    #     """Set bit with help of mask."""
+    #     # clear
+    #     v &= ~mask
+    #     if x:
+    #         # set
+    #         v |= mask
+    #     return v
+    #
+    # @staticmethod
+    # def set_bit(v, index, x):
+    #     """Set bit - return new value.
+    #
+    #     Set the index:th bit of v to 1 if x is truthy,
+    #     else to 0, and return the new value.
+    #     https://stackoverflow.com/a/12174051/574981
+    #     """
+    #     # Compute mask, an integer with just bit 'index' set.
+    #     mask = 1 << index
+    #     # Clear the bit indicated by the mask (if x is False)
+    #     v &= ~mask
+    #     if x:
+    #         # If x was True, set the bit indicated by the mask.
+    #         v |= mask
+    #     # Return the result, we're done.
+    #     return v
 
     ##########################################
     # class _BC():
@@ -295,18 +295,6 @@ class TLC59711Multi:
             value=0
     ):
         """Set chip header bits in buffer."""
-        # print(
-        #     "chip_index={} "
-        #     "part_bit_offset={} "
-        #     "field={} "
-        #     "value={} "
-        #     "".format(
-        #         chip_index,
-        #         part_bit_offset,
-        #         field,
-        #         value
-        #     )
-        # )
         offset = part_bit_offset + field["offset"]
         # restrict value
         value &= field["mask"]
@@ -316,7 +304,6 @@ class TLC59711Multi:
         header_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
         # get chip header
         header = self._get_32bit_value_from_buffer(header_start)
-        # print("{:032b}".format(header))
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
         mask = field["mask"] << offset
@@ -341,7 +328,8 @@ class TLC59711Multi:
         # The chips are just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
-        self._buffer = bytearray(self._CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+        self._buffer = bytearray(
+            self._CHIP_BUFFER_BYTE_COUNT * self.chip_count)
 
         # Initialize the brightness channel values to max
         # (these are 7-bit values).
@@ -367,10 +355,8 @@ class TLC59711Multi:
         # preparation done
         # now initialize buffer to default values
 
-        # self._debug_print_buffer()
         print("init buffer..")
         self._init_buffer()
-        # self._debug_print_buffer()
         print("-> done")
 
         self._buffer_index_lookuptable = []
@@ -382,14 +368,10 @@ class TLC59711Multi:
             # buffer_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
             # self._buffer[buffer_start] = 0x25 << 2
 
-            # self._debug_print_buffer()
             self.chip_set_BCData(
                 chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
-            # self._debug_print_buffer()
             self._chip_set_FunctionControl(chip_index)
-            # self._debug_print_buffer()
             self._chip_set_WriteCommand(chip_index)
-            # self._debug_print_buffer()
         # loop end
 
     def chip_set_BCData(self, chip_index, bcr=127, bcg=127, bcb=127):
@@ -499,7 +481,6 @@ class TLC59711Multi:
 
     def _write(self):
         # Write out the current state to the shift register.
-        # self._debug_print_buffer()
         try:
             # Lock the SPI bus and configure it for the shift register.
             while not self._spi.try_lock():
@@ -655,55 +636,6 @@ class TLC59711Multi:
 
     ##########################################
 
-    def _debug_print_buffer(self):
-        indent = "  "
-        if self.chip_count == 1:
-            print("buffer: [", end="")
-            indent = ""
-        else:
-            print("buffer: [")
-        for index in range(self.chip_count):
-            print("{}{}: ".format(indent, index), end="")
-            # print()
-            # self._debug_print_tlc59711_bin()
-            # print()
-            # self._debug_print_tlc59711_hex()
-            self._debug_print_tlc59711()
-            if self.chip_count > 1:
-                print()
-        print("]")
-
-    def _debug_print_tlc59711_bin(self):
-        for index in range(len(self._buffer)):
-            print("{:08b}".format(self._buffer[index]), end="")
-
-    def _debug_print_tlc59711_hex(self):
-        for index in range(len(self._buffer)):
-            print("x{:02X}, ".format(self._buffer[index]), end="")
-
-    def _debug_print_tlc59711(self):
-        self._debug_print_tlc59711_header()
-        self._debug_print_tlc59711_ch()
-
-    def _debug_print_tlc59711_header(self):
-        # print(
-        #     "self._CHIP_BUFFER_HEADER_BYTE_COUNT",
-        #     self._CHIP_BUFFER_HEADER_BYTE_COUNT)
-        print("header: '", end="")
-        for index in range(self._CHIP_BUFFER_HEADER_BYTE_COUNT):
-            print("{:08b} ".format(self._buffer[index]), end="")
-        print("' ", end="")
-
-    def _debug_print_tlc59711_ch(self):
-        print("ch: [", end="")
-        for index in range(
-                self._CHIP_BUFFER_HEADER_BYTE_COUNT, len(self._buffer)
-        ):
-            print("x{:02X}, ".format(self._buffer[index]), end="")
-        print("]", end="")
-
-    ##########################################
-
     def _get_32bit_value_from_buffer(self, buffer_start):
         return (
             (self._buffer[buffer_start + 0] << 24) |
@@ -718,8 +650,6 @@ class TLC59711Multi:
                 "value {} not in range: 0..0xFFFFFFFF"
                 "".format(value)
             )
-        # print("buffer_start", buffer_start, "value", value)
-        # self._debug_print_buffer()
         self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
         self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
         self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
@@ -737,8 +667,6 @@ class TLC59711Multi:
         #         "value {} not in range: 0..65535"
         #         "".format(value)
         #     )
-        # print("buffer_start", buffer_start, "value", value)
-        # self._debug_print_buffer()
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value & 0xFF
 
@@ -931,13 +859,9 @@ class TLC59711Multi:
             each int 0..65535 or float 0..1
         """
         if 0 <= pixel_index < self.pixel_count:
-            # print("value", value)
             # convert to list
             value = list(value)
-            # print("value", value)
-            # print("rep:")
             # repr(value)
-            # print("check length..")
             if len(value) != self.COLORS_PER_PIXEL:
                 raise IndexError(
                     "length of value {} does not match COLORS_PER_PIXEL (= {})"
@@ -954,10 +878,7 @@ class TLC59711Multi:
             # this modifies 'value' in place..
             self._check_and_convert(value)
 
-            # print("value", value)
-
             # update buffer
-            # print("pixel_index", pixel_index, "value", value)
             # we change channel order here:
             # buffer channel order is blue, green, red
             pixel_start = pixel_index * self.COLORS_PER_PIXEL
@@ -1035,7 +956,6 @@ class TLC59711Multi:
                 channel_index += 2
             elif pixel_index_offset == 2:
                 channel_index -= 2
-            # print("{:>2} → {:>2}".format(temp, channel_index))
             self._set_16bit_value_in_buffer(
                 self._buffer_index_lookuptable[channel_index],
                 value
