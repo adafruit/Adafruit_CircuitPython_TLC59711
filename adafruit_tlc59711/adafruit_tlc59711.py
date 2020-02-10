@@ -57,7 +57,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 
 # Globally disable protected access.  Once again pylint can't figure out the
 # context for using internal decorate classes below.
-# In these cases protectected access is by design for the internal class.
+# In these cases protected access is by design for the internal class.
 # pylint: disable=protected-access
 
 # Yet another pylint issue, it fails to recognize a decorator class by

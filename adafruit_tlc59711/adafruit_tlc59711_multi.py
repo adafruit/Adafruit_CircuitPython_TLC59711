@@ -61,6 +61,8 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # refers to them as.
 # pylint: disable=invalid-name
 
+from micropython import const
+
 
 class TLC59711Multi:
     """Multi TLC59711 16-bit 12 channel LED PWM driver.
@@ -139,14 +141,14 @@ class TLC59711Multi:
     # helper
     ##########################################
 
-    CHIP_BUFFER_BYTE_COUNT = 28
+    _CHIP_BUFFER_BYTE_COUNT = const(28)
 
-    COLORS_PER_PIXEL = 3
-    PIXEL_PER_CHIP = 4
-    CHANNEL_PER_CHIP = COLORS_PER_PIXEL * PIXEL_PER_CHIP
+    COLORS_PER_PIXEL = const(3)
+    PIXEL_PER_CHIP = const(4)
+    CHANNEL_PER_CHIP = const(COLORS_PER_PIXEL * PIXEL_PER_CHIP)
 
-    BUFFER_BYTES_PER_COLOR = 2
-    BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL
+    _BUFFER_BYTES_PER_COLOR = const(2)
+    _BUFFER_BYTES_PER_PIXEL = const(_BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL)
 
     @staticmethod
     def set_bit_with_mask(v, mask, x):
@@ -183,8 +185,8 @@ class TLC59711Multi:
     # BCB 7bit;
     # BCG 7bit;
     # BCR 7bit;
-    _BC_CHIP_BUFFER_BIT_OFFSET = 0
-    _BC_BIT_COUNT = 3 * 7
+    _BC_CHIP_BUFFER_BIT_OFFSET = const(0)
+    _BC_BIT_COUNT = const(3 * 7)
     # this holds the chip offset and
     _BC_FIELDS = {
         "BCR": {
@@ -231,8 +233,8 @@ class TLC59711Multi:
     #     0 = Out on - controlled by GS-Data
     # """
 
-    _FC_CHIP_BUFFER_BIT_OFFSET = _BC_BIT_COUNT
-    _FC_BIT_COUNT = 5
+    _FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
+    _FC_BIT_COUNT = const(5)
     _FC_FIELDS = {
         "BLANK": {
             "offset": 0,
@@ -265,8 +267,8 @@ class TLC59711Multi:
     # class _WRITE_COMMAND():
     # """WRITE_COMMAND."""
 
-    _WC_CHIP_BUFFER_BIT_OFFSET = _FC_BIT_COUNT + _BC_BIT_COUNT
-    _WC_BIT_COUNT = 6
+    _WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
+    _WC_BIT_COUNT = const(6)
     _WC_FIELDS = {
         "WRITE_COMMAND": {
             "offset": 0,
@@ -274,13 +276,13 @@ class TLC59711Multi:
             "mask": 0b111111,
         },
     }
-    WRITE_COMMAND = 0b100101
+    WRITE_COMMAND = const(0b100101)
     ##########################################
 
     ########
-    CHIP_BUFFER_HEADER_BIT_COUNT = \
-        _WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT
-    CHIP_BUFFER_HEADER_BYTE_COUNT = CHIP_BUFFER_HEADER_BIT_COUNT // 8
+    _CHIP_BUFFER_HEADER_BIT_COUNT = const(
+        _WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT)
+    _CHIP_BUFFER_HEADER_BYTE_COUNT = const(_CHIP_BUFFER_HEADER_BIT_COUNT // 8)
 
     ##########################################
 
@@ -311,7 +313,7 @@ class TLC59711Multi:
         # move value to position
         value = value << offset
         # calculate header start
-        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
+        header_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
         # get chip header
         header = self._get_32bit_value_from_buffer(header_start)
         # print("{:032b}".format(header))
@@ -339,7 +341,7 @@ class TLC59711Multi:
         # The chips are just a big 28 byte long shift register without any
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
-        self._buffer = bytearray(self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+        self._buffer = bytearray(self._CHIP_BUFFER_BYTE_COUNT * self.chip_count)
 
         # Initialize the brightness channel values to max
         # (these are 7-bit values).
@@ -377,7 +379,7 @@ class TLC59711Multi:
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            # buffer_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
+            # buffer_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
             # self._buffer[buffer_start] = 0x25 << 2
 
             # self._debug_print_buffer()
@@ -485,12 +487,12 @@ class TLC59711Multi:
     def _init_lookuptable(self):
         for channel_index in range(self.channel_count):
             buffer_index = (
-                (self.CHIP_BUFFER_BYTE_COUNT // self.BUFFER_BYTES_PER_COLOR)
+                (self._CHIP_BUFFER_BYTE_COUNT // self._BUFFER_BYTES_PER_COLOR)
                 * (channel_index // self.CHANNEL_PER_CHIP)
                 + channel_index % self.CHANNEL_PER_CHIP
             )
-            buffer_index *= self.BUFFER_BYTES_PER_COLOR
-            buffer_index += self.CHIP_BUFFER_HEADER_BYTE_COUNT
+            buffer_index *= self._BUFFER_BYTES_PER_COLOR
+            buffer_index += self._CHIP_BUFFER_HEADER_BYTE_COUNT
             self._buffer_index_lookuptable.append(buffer_index)
 
     ##########################################
@@ -685,17 +687,17 @@ class TLC59711Multi:
 
     def _debug_print_tlc59711_header(self):
         # print(
-        #     "self.CHIP_BUFFER_HEADER_BYTE_COUNT",
-        #     self.CHIP_BUFFER_HEADER_BYTE_COUNT)
+        #     "self._CHIP_BUFFER_HEADER_BYTE_COUNT",
+        #     self._CHIP_BUFFER_HEADER_BYTE_COUNT)
         print("header: '", end="")
-        for index in range(self.CHIP_BUFFER_HEADER_BYTE_COUNT):
+        for index in range(self._CHIP_BUFFER_HEADER_BYTE_COUNT):
             print("{:08b} ".format(self._buffer[index]), end="")
         print("' ", end="")
 
     def _debug_print_tlc59711_ch(self):
         print("ch: [", end="")
         for index in range(
-                self.CHIP_BUFFER_HEADER_BYTE_COUNT, len(self._buffer)
+                self._CHIP_BUFFER_HEADER_BYTE_COUNT, len(self._buffer)
         ):
             print("x{:02X}, ".format(self._buffer[index]), end="")
         print("]", end="")
