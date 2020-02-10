@@ -498,10 +498,7 @@ class TLC59711Multi:
     ##########################################
 
     @staticmethod
-    def calculate_Ioclmax(
-            *,
-            Riref=2.48,
-    ):
+    def calculate_Ioclmax(*, Riref=2.48):
         """
         Calculate Maximum Constant Sink Current Value.
 
@@ -534,10 +531,7 @@ class TLC59711Multi:
         return Ioclmax
 
     @staticmethod
-    def calculate_Riref(
-            *,
-            Ioclmax=20,
-    ):
+    def calculate_Riref(*, Ioclmax=20):
         """
         Calculate Maximum Constant Sink Current Value.
 
@@ -597,41 +591,34 @@ class TLC59711Multi:
         if not 2.0 <= Ioclmax <= 60.0:
             raise ValueError(
                 "Ioclmax {} not in range: 2mA..60mA"
-                "".format(Ioclmax)
-            )
+                "".format(Ioclmax))
         if not 0.0 <= IoutR <= Ioclmax:
             raise ValueError(
                 "IoutR {} not in range: 2mA..{}mA"
-                "".format(IoutR, Ioclmax)
-            )
+                "".format(IoutR, Ioclmax))
         if not 0.0 <= IoutG <= Ioclmax:
             raise ValueError(
                 "IoutG {} not in range: 2mA..{}mA"
-                "".format(IoutG, Ioclmax)
-            )
+                "".format(IoutG, Ioclmax))
         if not 0.0 <= IoutB <= Ioclmax:
             raise ValueError(
                 "IoutB {} not in range: 2mA..{}mA"
-                "".format(IoutB, Ioclmax)
-            )
+                "".format(IoutB, Ioclmax))
         bcr = int((IoutR / Ioclmax) * 127)
         bcg = int((IoutG / Ioclmax) * 127)
         bcb = int((IoutB / Ioclmax) * 127)
         if not 0 <= bcr <= 127:
             raise ValueError(
                 "bcr {} not in range: 0..127"
-                "".format(bcr)
-            )
+                "".format(bcr))
         if not 0 <= bcg <= 127:
             raise ValueError(
                 "bcg {} not in range: 0..127"
-                "".format(bcg)
-            )
+                "".format(bcg))
         if not 0 <= bcb <= 127:
             raise ValueError(
                 "bcb {} not in range: 0..127"
-                "".format(bcb)
-            )
+                "".format(bcb))
         return (bcr, bcg, bcb)
 
     ##########################################
