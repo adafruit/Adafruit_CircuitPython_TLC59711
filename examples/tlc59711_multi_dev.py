@@ -16,7 +16,7 @@ from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
 
 
 ##########################################
-pixel_count = 16*8
+pixel_count = 16*1
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = TLC59711Multi(spi, pixel_count=pixel_count)

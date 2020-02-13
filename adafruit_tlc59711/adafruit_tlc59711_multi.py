@@ -62,6 +62,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # pylint: disable=invalid-name
 
 from micropython import const
+import struct
 
 
 class TLC59711Multi:
@@ -352,9 +353,11 @@ class TLC59711Multi:
         self.dsprpt = True
         self.blank = False
 
+        self._buffer_32bit_format = struct.Struct('I')
+        self._buffer_16bit_format = struct.Struct('H')
+
         # preparation done
         # now initialize buffer to default values
-
         print("init buffer..")
         self._init_buffer()
         print("-> done")
@@ -589,9 +592,8 @@ class TLC59711Multi:
         # Iout / Ioclmax       =  BCX / 127              | * 127
         # Iout / Ioclmax * 127 =  BCX
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError(
-                "Ioclmax {} not in range: 2mA..60mA"
-                "".format(Ioclmax))
+            raise ValueError("Ioclmax {} not in range: 2mA..60mA"
+                             "".format(Ioclmax))
         if not 0.0 <= IoutR <= Ioclmax:
             raise ValueError(
                 "IoutR {} not in range: 2mA..{}mA"
@@ -624,12 +626,7 @@ class TLC59711Multi:
     ##########################################
 
     def _get_32bit_value_from_buffer(self, buffer_start):
-        return (
-            (self._buffer[buffer_start + 0] << 24) |
-            (self._buffer[buffer_start + 1] << 16) |
-            (self._buffer[buffer_start + 2] << 8) |
-            self._buffer[buffer_start + 3]
-        )
+        return self._buffer_32bit_format.unpack(buffer_start)
 
     def _set_32bit_value_in_buffer(self, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFF:
@@ -637,16 +634,15 @@ class TLC59711Multi:
                 "value {} not in range: 0..0xFFFFFFFF"
                 "".format(value)
             )
-        self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
-        self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
-        self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 3] = value & 0xFF
+        self._buffer_32bit_format.pack_into(
+            buffer_start,
+            (value >> 24) & 0xFF,
+            (value >> 16) & 0xFF,
+            (value >> 8) & 0xFF,
+            value & 0xFF)
 
     def _get_16bit_value_from_buffer(self, buffer_start):
-        return (
-            (self._buffer[buffer_start + 0] << 8) |
-            self._buffer[buffer_start + 1]
-        )
+        return self._buffer_16bit_format.unpack(buffer_start)
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
         # if not 0 <= value <= 65535:
@@ -654,8 +650,8 @@ class TLC59711Multi:
         #         "value {} not in range: 0..65535"
         #         "".format(value)
         #     )
-        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value & 0xFF
+        self._buffer_16bit_format.pack_into(
+            buffer_start, (value >> 8) & 0xFF, value & 0xFF)
 
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
