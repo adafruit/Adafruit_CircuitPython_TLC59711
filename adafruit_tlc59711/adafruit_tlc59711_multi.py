@@ -302,14 +302,14 @@ class TLC59711Multi:
         # move value to position
         value = value << offset
         # calculate header start
-        header_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
+        header_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
         # get chip header
         header = self._get_32bit_value_from_buffer(header_start)
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
         mask = field["mask"] << offset
         # clear
-        header &= ~mask
+        header &= (~mask)
         # set
         header |= value
         # write header back
@@ -330,7 +330,7 @@ class TLC59711Multi:
         # fancy update protocol.  Blast out all the bits to update, that's it!
         # create raw output data
         self._buffer = bytearray(
-            self._CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+            _CHIP_BUFFER_BYTE_COUNT * self.chip_count)
 
         # Initialize the brightness channel values to max
         # (these are 7-bit values).
@@ -353,8 +353,8 @@ class TLC59711Multi:
         self.dsprpt = True
         self.blank = False
 
-        self._buffer_32bit_format = struct.Struct('I')
-        self._buffer_16bit_format = struct.Struct('H')
+        # self._buffer_32bit_format = struct.Struct('I')
+        # self._buffer_16bit_format = struct.Struct('H')
 
         # preparation done
         # now initialize buffer to default values
@@ -368,7 +368,7 @@ class TLC59711Multi:
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            # buffer_start = chip_index * self._CHIP_BUFFER_BYTE_COUNT
+            # buffer_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
             # self._buffer[buffer_start] = 0x25 << 2
 
             self.chip_set_BCData(
@@ -389,17 +389,17 @@ class TLC59711Multi:
         # set all bits
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCR"],
             value=bcr)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCG"],
             value=bcg)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._BC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCB"],
             value=bcb)
 
@@ -425,27 +425,27 @@ class TLC59711Multi:
         # set all bits
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["OUTTMG"],
             value=self.outtmg)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["EXTGCK"],
             value=self.extgck)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["TMGRST"],
             value=self.tmgrst)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["DSPRPT"],
             value=self.dsprpt)
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._FC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["BLANK"],
             value=self.blank)
 
@@ -465,19 +465,19 @@ class TLC59711Multi:
         # set all bits
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
-            part_bit_offset=self._WC_CHIP_BUFFER_BIT_OFFSET,
+            part_bit_offset=_WC_CHIP_BUFFER_BIT_OFFSET,
             field=self._WC_FIELDS["WRITE_COMMAND"],
             value=self.WRITE_COMMAND)
 
     def _init_lookuptable(self):
         for channel_index in range(self.channel_count):
             buffer_index = (
-                (self._CHIP_BUFFER_BYTE_COUNT // self._BUFFER_BYTES_PER_COLOR)
+                (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR)
                 * (channel_index // self.CHANNEL_PER_CHIP)
                 + channel_index % self.CHANNEL_PER_CHIP
             )
-            buffer_index *= self._BUFFER_BYTES_PER_COLOR
-            buffer_index += self._CHIP_BUFFER_HEADER_BYTE_COUNT
+            buffer_index *= _BUFFER_BYTES_PER_COLOR
+            buffer_index += _CHIP_BUFFER_HEADER_BYTE_COUNT
             self._buffer_index_lookuptable.append(buffer_index)
 
     ##########################################
@@ -626,7 +626,9 @@ class TLC59711Multi:
     ##########################################
 
     def _get_32bit_value_from_buffer(self, buffer_start):
-        return self._buffer_32bit_format.unpack(buffer_start)
+        # return self._buffer_32bit_format.unpack_from(
+        #     self._buffer, buffer_start)
+        return struct.unpack_from('I', self._buffer, buffer_start)[0]
 
     def _set_32bit_value_in_buffer(self, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFF:
@@ -634,15 +636,13 @@ class TLC59711Multi:
                 "value {} not in range: 0..0xFFFFFFFF"
                 "".format(value)
             )
-        self._buffer_32bit_format.pack_into(
-            buffer_start,
-            (value >> 24) & 0xFF,
-            (value >> 16) & 0xFF,
-            (value >> 8) & 0xFF,
-            value & 0xFF)
+        # self._buffer_32bit_format.pack_into(
+        struct.pack_into('I', self._buffer, buffer_start, value)
 
     def _get_16bit_value_from_buffer(self, buffer_start):
-        return self._buffer_16bit_format.unpack(buffer_start)
+        # return self._buffer_16bit_format.unpack_from(
+        #     self._buffer, buffer_start)[0]
+        return struct.unpack_from('H', self._buffer, buffer_start)[0]
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
         # if not 0 <= value <= 65535:
@@ -650,8 +650,10 @@ class TLC59711Multi:
         #         "value {} not in range: 0..65535"
         #         "".format(value)
         #     )
-        self._buffer_16bit_format.pack_into(
-            buffer_start, (value >> 8) & 0xFF, value & 0xFF)
+        struct.pack_into('H', self._buffer, buffer_start, value)
+        # self._buffer_16bit_format.pack_into(self._buffer, buffer_start,value)
+        # self._buffer_16bit_format.pack_into(
+        #     self._buffer, buffer_start, (value >> 8) & 0xFF, value & 0xFF)
 
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
