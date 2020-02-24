@@ -55,7 +55,7 @@ def channelcheck_update_pixel(offset):
 
 def channelcheck_update(offset):
     """Channel check."""
-    # print("offset", offset)
+    print("offset", offset)
 
     pixels.set_channel(offset, value_high)
     # clear last set channel
@@ -416,7 +416,7 @@ def time_measurement_pixels_get():
         print("[", end="")
         for i in range(pixel_count):
             print("{}:{}, ".format(i, pixels[i]), end="")
-        print("]", end="")
+        print("]")
     time_measurement_call(
         "'print('{}:{}, '.format(i, pixels[i]), end='')'",
         _test,

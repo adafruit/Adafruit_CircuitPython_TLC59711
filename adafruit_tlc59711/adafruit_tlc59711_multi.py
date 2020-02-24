@@ -626,9 +626,15 @@ class TLC59711Multi:
     ##########################################
 
     def _get_32bit_value_from_buffer(self, buffer_start):
+        # return (
+        #     (self._buffer[buffer_start + 0] << 24) |
+        #     (self._buffer[buffer_start + 1] << 16) |
+        #     (self._buffer[buffer_start + 2] << 8) |
+        #     self._buffer[buffer_start + 3]
+        # )
         # return self._buffer_32bit_format.unpack_from(
         #     self._buffer, buffer_start)
-        return struct.unpack_from('I', self._buffer, buffer_start)[0]
+        return struct.unpack_from('>I', self._buffer, buffer_start)[0]
 
     def _set_32bit_value_in_buffer(self, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFF:
@@ -636,24 +642,34 @@ class TLC59711Multi:
                 "value {} not in range: 0..0xFFFFFFFF"
                 "".format(value)
             )
+        # self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
+        # self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
+        # self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
+        # self._buffer[buffer_start + 3] = value & 0xFF
         # self._buffer_32bit_format.pack_into(
-        struct.pack_into('I', self._buffer, buffer_start, value)
+        struct.pack_into('>I', self._buffer, buffer_start, value)
 
     def _get_16bit_value_from_buffer(self, buffer_start):
+        # return (
+        #     (self._buffer[buffer_start + 0] << 8) |
+        #     self._buffer[buffer_start + 1]
+        # )
         # return self._buffer_16bit_format.unpack_from(
         #     self._buffer, buffer_start)[0]
-        return struct.unpack_from('H', self._buffer, buffer_start)[0]
+        return struct.unpack_from('>H', self._buffer, buffer_start)[0]
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
-        # if not 0 <= value <= 65535:
-        #     raise ValueError(
-        #         "value {} not in range: 0..65535"
-        #         "".format(value)
-        #     )
-        struct.pack_into('H', self._buffer, buffer_start, value)
+        if not 0 <= value <= 65535:
+            raise ValueError(
+                "value {} not in range: 0..65535"
+                "".format(value)
+            )
+        # self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
+        # self._buffer[buffer_start + 1] = value & 0xFF
         # self._buffer_16bit_format.pack_into(self._buffer, buffer_start,value)
         # self._buffer_16bit_format.pack_into(
         #     self._buffer, buffer_start, (value >> 8) & 0xFF, value & 0xFF)
+        struct.pack_into('>H', self._buffer, buffer_start, value)
 
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
