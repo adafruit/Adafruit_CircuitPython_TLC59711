@@ -373,7 +373,7 @@ class TLC59711Multi:
         # set
         header |= value
         # write header back
-        struct.pack_into('>I', self._buffer, header_start, value)
+        struct.pack_into('>I', self._buffer, header_start, header)
 
     ##########################################
 
