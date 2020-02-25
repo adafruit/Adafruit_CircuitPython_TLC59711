@@ -16,7 +16,7 @@ from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
 
 
 ##########################################
-pixel_count = 16*1
+pixel_count = 16*9
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = TLC59711Multi(spi, pixel_count=pixel_count)
@@ -55,7 +55,7 @@ def channelcheck_update_pixel(offset):
 
 def channelcheck_update(offset):
     """Channel check."""
-    print("offset", offset)
+    # print("offset", offset)
 
     pixels.set_channel(offset, value_high)
     # clear last set channel
@@ -68,6 +68,7 @@ def channelcheck_update(offset):
     offset += 1
     if offset >= pixels.channel_count:
         offset = 0
+        print("offset overflow. start from 0")
     return offset
 
 
@@ -167,7 +168,7 @@ def time_measurement_pixels_set_loop():
         for i in range(pixel_count):
             pixels[i] = (500, 40500, 1000)
     time_measurement_call(
-        "'pixels[for 0..{}] = (500, 40500, 1000)'".format(pixel_count),
+        "'pixels[0..{}] = (500, 40500, 1000)'".format(pixel_count),
         _test,
         loop_count
     )
@@ -176,7 +177,7 @@ def time_measurement_pixels_set_loop():
         for i in range(pixel_count):
             pixels[i] = (0.1, 0.5, 0.9)
     time_measurement_call(
-        "'pixels[for 0..{}] = (0.1, 0.5, 0.9)'".format(pixel_count),
+        "'pixels[0..{}] = (0.1, 0.5, 0.9)'".format(pixel_count),
         _test,
         loop_count
     )
