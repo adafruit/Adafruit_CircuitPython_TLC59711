@@ -623,26 +623,6 @@ class TLC59711Multi:
         # self._buf32_format.pack_into(
         struct.pack_into('>I', self._buffer, buffer_start, value)
 
-    def _get_16bit_value_from_buffer(self, buffer_start):
-        # return (
-        #     (self._buffer[buffer_start + 0] << 8) |
-        #     self._buffer[buffer_start + 1]
-        # )
-        # return self._buf16_format.unpack_from(
-        #     self._buffer, buffer_start)[0]
-        return struct.unpack_from('>H', self._buffer, buffer_start)[0]
-
-    def _set_16bit_value_in_buffer(self, buffer_start, value):
-        if not 0 <= value <= 65535:
-            raise ValueError(
-                "value {} not in range: 0..65535"
-                "".format(value)
-            )
-        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value & 0xFF
-        # self._buf16_format.pack_into(self._buffer, buffer_start,value)
-        # struct.pack_into('>H', self._buffer, buffer_start, value)
-
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
@@ -695,15 +675,8 @@ class TLC59711Multi:
     ##########################################
 
     def _get_channel_16bit_value(self, channel_index):
-        return self._get_16bit_value_from_buffer(
-            self._buffer_index_lookuptable[channel_index],
-        )
-
-    def _set_channel_16bit_value(self, channel_index, value):
-        self._set_16bit_value_in_buffer(
-            self._buffer_index_lookuptable[channel_index],
-            value
-        )
+        buffer_start = self._buffer_index_lookuptable[channel_index]
+        return struct.unpack_from('>H', self._buffer, buffer_start)[0]
 
     def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
         """
@@ -896,10 +869,9 @@ class TLC59711Multi:
                 channel_index += 2
             elif pixel_index_offset == 2:
                 channel_index -= 2
-            self._set_16bit_value_in_buffer(
-                self._buffer_index_lookuptable[channel_index],
-                value
-            )
+            # set value in buffer
+            buffer_start = self._buffer_index_lookuptable[channel_index]
+            struct.pack_into('>H', self._buffer, buffer_start, value)
         else:
             raise IndexError(
                 "channel_index {} out of range (0..{})"

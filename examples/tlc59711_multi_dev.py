@@ -361,12 +361,14 @@ def time_measurement_channel_set():
         loop_count
     )
 
+    channel_count = pixel_count * 3
+
     def _test():
-        for i in range(pixel_count * 3):
+        for i in range(channel_count):
             pixels.set_channel(i, 500)
     time_measurement_call(
         "'set_channel(for 0..{}, 10000)'"
-        "".format(pixel_count * 3),
+        "".format(channel_count),
         _test,
         10
     )
