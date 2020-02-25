@@ -364,7 +364,7 @@ class TLC59711Multi:
         # calculate header start
         header_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
         # get chip header
-        header = self._get_32bit_value_from_buffer(header_start)
+        header = struct.unpack_from('>I', self._buffer, header_start)[0]
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
         mask = field["mask"] << offset
@@ -373,7 +373,7 @@ class TLC59711Multi:
         # set
         header |= value
         # write header back
-        self._set_32bit_value_in_buffer(header_start, header)
+        struct.pack_into('>I', self._buffer, header_start, value)
 
     ##########################################
 
@@ -601,28 +601,6 @@ class TLC59711Multi:
 
     ##########################################
 
-    def _get_32bit_value_from_buffer(self, buffer_start):
-        # return (
-        #     (self._buffer[buffer_start + 0] << 24) |
-        #     (self._buffer[buffer_start + 1] << 16) |
-        #     (self._buffer[buffer_start + 2] << 8) |
-        #     self._buffer[buffer_start + 3]
-        # )
-        # return self._buf32_format.unpack_from(
-        #     self._buffer, buffer_start)
-        return struct.unpack_from('>I', self._buffer, buffer_start)[0]
-
-    def _set_32bit_value_in_buffer(self, buffer_start, value):
-        if not 0 <= value <= 0xFFFFFFFF:
-            raise ValueError(
-                "value {} not in range: 0..0xFFFFFFFF".format(value))
-        # self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
-        # self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
-        # self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
-        # self._buffer[buffer_start + 3] = value & 0xFF
-        # self._buf32_format.pack_into(
-        struct.pack_into('>I', self._buffer, buffer_start, value)
-
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
@@ -641,6 +619,20 @@ class TLC59711Multi:
 
     @staticmethod
     def _check_and_convert(value):
+        # loop
+        # error_message = "values[{}] {} not in range: 0..{}"
+        # for i, value in enumerate(values):
+        #     # check if we have float values
+        #     if isinstance(value, float):
+        #         # check if value is in range
+        #         if not 0.0 <= value <= 1.0:
+        #             raise ValueError(error_message.format(i, value, '1'))
+        #         # convert to 16bit value
+        #         values[i] = int(value * 65535)
+        #     else:
+        #         if not 0 <= value <= 65535:
+        #             raise ValueError(error_message.format(i, value, '65535'))
+        # discreet
         # check if we have float values
         if isinstance(value[0], float):
             # check if value is in range
