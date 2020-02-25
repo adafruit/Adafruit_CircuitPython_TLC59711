@@ -146,6 +146,8 @@ class TLC59711Multi:
     # helper
     ##########################################
 
+    # pylama:ignore=E0602
+    # ugly workaround for pylama not knowing of micropython const thing
     _CHIP_BUFFER_BYTE_COUNT = const(28)
 
     COLORS_PER_PIXEL = const(3)
