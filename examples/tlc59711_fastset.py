@@ -1,7 +1,11 @@
-"""TLC5971 / TLC59711 Multi."""
+"""TLC5971 / TLC59711."""
 
 __doc__ = """
-tlc59711_multi.py - TLC59711TLC59711Multi minimal example.
+tlc59711_fastset.py - TLC59711 fast set example.
+
+showcases the usage of set_pixel_16bit_value for fastests setting of values.
+for speed comparision of all the available set calls
+look at the tlc59711_multi_dev.py file.
 
 Enjoy the colors :-)
 """
@@ -42,26 +46,8 @@ def channelcheck_update_pixel(offset):
         time.sleep(0.2)
         offset = 0
         print("clear")
-        pixels.set_pixel_all((0, 1, 0))
+        pixels.set_pixel_all_16bit_value(0, 1, 0)
         pixels.show()
-    return offset
-
-
-def channelcheck_update(offset):
-    """Channel check."""
-    # print("offset", offset)
-
-    pixels.set_channel(offset, 1000)
-    # clear last set channel
-    last = offset-1
-    if last < 0:
-        last = pixels.channel_count-1
-    pixels.set_channel(last, 0)
-    pixels.show()
-
-    offset += 1
-    if offset >= pixels.channel_count:
-        offset = 0
     return offset
 
 
@@ -71,16 +57,16 @@ def test_main():
     print(__doc__, end="")
     print(42 * '*')
 
-    BCValues = TLC59711Multi.calculate_BCData(
+    bcvalues = TLC59711Multi.calculate_BCData(
         Ioclmax=18,
         IoutR=18,
         IoutG=11,
         IoutB=13,
     )
-    print("BCValues = {}".format(BCValues))
-    pixels.bcr = BCValues[0]
-    pixels.bcg = BCValues[1]
-    pixels.bcb = BCValues[2]
+    print("bcvalues = {}".format(bcvalues))
+    pixels.bcr = bcvalues[0]
+    pixels.bcg = bcvalues[1]
+    pixels.bcb = bcvalues[2]
     pixels.update_BCData()
     pixels.show()
 
@@ -89,9 +75,7 @@ def test_main():
     print("loop:")
     while True:
         offset = channelcheck_update_pixel(offset)
-        # offset = channelcheck_update(offset)
         time.sleep(0.2)
-        # channelcheck_update()
 
 
 ##########################################
