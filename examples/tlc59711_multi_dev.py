@@ -99,7 +99,7 @@ def time_measurement_call(message, test_function, loop_count=1000):
     # )
     # "{:>8.2f}ms".format(3.56)
     print(
-        "{call_duration:>8.2f}ms\t{message}"
+        "{call_duration:>10.4f}ms\t{message}"
         "".format(
             call_duration=(duration / loop_count) * 1000,
             message=message,

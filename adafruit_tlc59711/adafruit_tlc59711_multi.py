@@ -638,10 +638,10 @@ class TLC59711Multi:
                 "value {} not in range: 0..65535"
                 "".format(value)
             )
-        # self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value & 0xFF
+        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value & 0xFF
         # self._buf16_format.pack_into(self._buffer, buffer_start,value)
-        struct.pack_into('>H', self._buffer, buffer_start, value)
+        # struct.pack_into('>H', self._buffer, buffer_start, value)
 
     @staticmethod
     def _convert_01_float_to_16bit_integer(value):
@@ -660,19 +660,37 @@ class TLC59711Multi:
         return value
 
     @staticmethod
-    def _check_and_convert(values):
-        error_message = "values[{}] {} not in range: 0..{}"
-        for i, value in enumerate(values):
-            # check if we have float values
-            if isinstance(value, float):
-                # check if value is in range
-                if not 0.0 <= value <= 1.0:
-                    raise ValueError(error_message.format(i, value, '1'))
-                # convert to 16bit value
-                values[i] = int(value * 65535)
-            else:
-                if not 0 <= value[0] <= 65535:
-                    raise ValueError(error_message.format(i, value, '65535'))
+    def _check_and_convert(value):
+        # check if we have float values
+        if isinstance(value[0], float):
+            # check if value is in range
+            if not 0.0 <= value[0] <= 1.0:
+                raise ValueError(
+                    "value[0] {} not in range: 0..1".format(value[0]))
+            # convert to 16bit value
+            value[0] = int(value[0] * 65535)
+        else:
+            if not 0 <= value[0] <= 65535:
+                raise ValueError(
+                    "value[0] {} not in range: 0..65535".format(value[0]))
+        if isinstance(value[1], float):
+            if not 0.0 <= value[1] <= 1.0:
+                raise ValueError(
+                    "value[1] {} not in range: 0..1".format(value[1]))
+            value[1] = int(value[1] * 65535)
+        else:
+            if not 0 <= value[1] <= 65535:
+                raise ValueError(
+                    "value[1] {} not in range: 0..65535".format(value[1]))
+        if isinstance(value[2], float):
+            if not 0.0 <= value[2] <= 1.0:
+                raise ValueError(
+                    "value[2] {} not in range: 0..1".format(value[2]))
+            value[2] = int(value[2] * 65535)
+        else:
+            if not 0 <= value[2] <= 65535:
+                raise ValueError(
+                    "value[2] {} not in range: 0..65535".format(value[2]))
 
     ##########################################
 
@@ -825,11 +843,7 @@ class TLC59711Multi:
             # self._buffer[buffer_start + 1] = value[0] & 0xFF
             # simpliefy code
             self.set_pixel_16bit_value(
-                pixel_index,
-                value[0],
-                value[1],
-                value[2]
-            )
+                pixel_index, value[0], value[1], value[2])
         else:
             raise IndexError(
                 "index {} out of range [0..{}]"
@@ -929,31 +943,15 @@ class TLC59711Multi:
         # for a more detailed version with all the debugging code and
         # comments look at set_pixel
         if 0 <= key < self.pixel_count:
-            # convert to list
             value = list(value)
-
             if len(value) != self.COLORS_PER_PIXEL:
                 raise IndexError(
                     "length of value {} does not match COLORS_PER_PIXEL (= {})"
                     "".format(len(value), self.COLORS_PER_PIXEL)
                 )
-
-            # this modifies value in place..
+            # _check_and_convert modifies value in place..
             self._check_and_convert(value)
-
-            # update buffer
-            # we change channel order here:
-            # buffer channel order is blue, green, red
-            pixel_start = key * self.COLORS_PER_PIXEL
-            buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
-            self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
-            self._buffer[buffer_start + 1] = value[2] & 0xFF
-            buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
-            self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
-            self._buffer[buffer_start + 1] = value[1] & 0xFF
-            buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
-            self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
-            self._buffer[buffer_start + 1] = value[0] & 0xFF
+            self.set_pixel_16bit_value(key, value[0], value[1], value[2])
         else:
             raise IndexError(
                 "index {} out of range [0..{}]"
