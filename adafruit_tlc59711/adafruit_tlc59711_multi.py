@@ -620,19 +620,22 @@ class TLC59711Multi:
     @staticmethod
     def _check_and_convert(value):
         # loop
-        # error_message = "values[{}] {} not in range: 0..{}"
-        # for i, value in enumerate(values):
+        # mega slow
+        # for i, val in enumerate(value):
         #     # check if we have float values
-        #     if isinstance(value, float):
-        #         # check if value is in range
-        #         if not 0.0 <= value <= 1.0:
-        #             raise ValueError(error_message.format(i, value, '1'))
-        #         # convert to 16bit value
-        #         values[i] = int(value * 65535)
+        #     if isinstance(val, float):
+        #         # check if val is in range
+        #         if not 0.0 <= val <= 1.0:
+        #             raise ValueError(
+        #                 "value[{}] {} not in range: 0..1".format(i, val))
+        #         # convert to 16bit val
+        #         value[i] = int(val * 65535)
         #     else:
-        #         if not 0 <= value <= 65535:
-        #             raise ValueError(error_message.format(i, value, '65535'))
-        # discreet
+        #         if not 0 <= val <= 65535:
+        #             raise ValueError(
+        #                 "value[{}] {} not in range: 0..65535".format(i, val))
+        # discreet is way faster
+        # (compared with tlc59711_multi_dev.py: pixels.set_all_black())
         # check if we have float values
         if isinstance(value[0], float):
             # check if value is in range
@@ -682,19 +685,25 @@ class TLC59711Multi:
         :param int value_g: 0..65535
         :param int value_b: 0..65535
         """
+        # optimized for speed.
+        # the struct version leads to very slow runtime behaivor if you set
+        # lots of pixels. that is the reason the discreet version is used.
+        # you can check with the tlc59711_multi_dev.py file.
+        # most prominent this is visible at the set_pixel_all_16bit_value func:
+        #  struct 157ms to 16ms (@144pixel on ItsyBitsy M4)
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
-        # self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_b & 0xFF
-        struct.pack_into('>H', self._buffer, buffer_start, value_b)
+        # struct.pack_into('>H', self._buffer, buffer_start, value_b)
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
-        # self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_g & 0xFF
-        struct.pack_into('>H', self._buffer, buffer_start, value_g)
+        # struct.pack_into('>H', self._buffer, buffer_start, value_g)
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
         buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
-        # self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
-        # self._buffer[buffer_start + 1] = value_r & 0xFF
-        struct.pack_into('>H', self._buffer, buffer_start, value_r)
+        # struct.pack_into('>H', self._buffer, buffer_start, value_r)
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
 
     def set_pixel_float_value(self, pixel_index, value_r, value_g, value_b):
         """
@@ -708,12 +717,27 @@ class TLC59711Multi:
         :param int value_g: 0..1
         :param int value_b: 0..1
         """
-        self.set_pixel_16bit_value(
-            pixel_index,
-            int(value_r * 65535),
-            int(value_g * 65535),
-            int(value_b * 65535)
-        )
+        # self.set_pixel_16bit_value(
+        #     pixel_index,
+        #     int(value_r * 65535),
+        #     int(value_g * 65535),
+        #     int(value_b * 65535)
+        # )
+        #  this is again a speed optimized version:
+        #  this cuts down from 228ms to 22ms (@144pixel on ItsyBitsy M4)
+        value_r = int(value_r * 65535)
+        value_g = int(value_g * 65535)
+        value_b = int(value_b * 65535)
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
 
     def set_pixel_16bit_color(self, pixel_index, color):
         """
@@ -726,12 +750,25 @@ class TLC59711Multi:
         :param int pixel_index: 0..(pixel_count)
         :param int color: 3-tuple of R, G, B;  0..65535
         """
-        self.set_pixel_16bit_value(
-            pixel_index,
-            color[0],
-            color[1],
-            color[2]
-        )
+        # self.set_pixel_16bit_value(
+        #     pixel_index,
+        #     color[0],
+        #     color[1],
+        #     color[2]
+        # )
+        # speed optimization: 140ms to 24ms (@144pixel on ItsyBitsy M4)
+        # the `color = list(color)` is the key here! (don't ask me why..)
+        color = list(color)
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[2] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (color[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[1] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[0] & 0xFF
 
     def set_pixel_float_color(self, pixel_index, color):
         """
@@ -744,12 +781,27 @@ class TLC59711Multi:
         :param int pixel_index: 0..(pixel_count)
         :param tuple/float color: 3-tuple of R, G, B;  0..1
         """
-        self.set_pixel_16bit_value(
-            pixel_index,
-            int(color[0] * 65535),
-            int(color[1] * 65535),
-            int(color[2] * 65535)
-        )
+        # self.set_pixel_16bit_value(
+        #     pixel_index,
+        #     int(color[0] * 65535),
+        #     int(color[1] * 65535),
+        #     int(color[2] * 65535)
+        # )
+        # speed optimization: 140ms to 30ms (@144pixel on ItsyBitsy M4)
+        color = list(color)
+        color[0] = int(color[0] * 65535)
+        color[1] = int(color[1] * 65535)
+        color[2] = int(color[2] * 65535)
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
+        self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[2] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 1]
+        self._buffer[buffer_start + 0] = (color[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[1] & 0xFF
+        buffer_start = self._buffer_index_lookuptable[pixel_start + 2]
+        self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[0] & 0xFF
 
     def set_pixel(self, pixel_index, value):
         """
@@ -787,16 +839,6 @@ class TLC59711Multi:
             # we change channel order here:
             # buffer channel order is blue, green, red
             # pixel_start = pixel_index * self.COLORS_PER_PIXEL
-            # self._set_channel_16bit_value(
-            #     pixel_start + 0,
-            #     value[2])
-            # self._set_channel_16bit_value(
-            #     pixel_start + 1,
-            #     value[1])
-            # self._set_channel_16bit_value(
-            #     pixel_start + 2,
-            #     value[0])
-            # optimize2
             # buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
             # self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
             # self._buffer[buffer_start + 1] = value[2] & 0xFF
