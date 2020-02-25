@@ -660,37 +660,19 @@ class TLC59711Multi:
         return value
 
     @staticmethod
-    def _check_and_convert(value):
-        # check if we have float values
-        if isinstance(value[0], float):
-            # check if value is in range
-            if not 0.0 <= value[0] <= 1.0:
-                raise ValueError(
-                    "value[0] {} not in range: 0..1".format(value[0]))
-            # convert to 16bit value
-            value[0] = int(value[0] * 65535)
-        else:
-            if not 0 <= value[0] <= 65535:
-                raise ValueError(
-                    "value[0] {} not in range: 0..65535".format(value[0]))
-        if isinstance(value[1], float):
-            if not 0.0 <= value[1] <= 1.0:
-                raise ValueError(
-                    "value[1] {} not in range: 0..1".format(value[1]))
-            value[1] = int(value[1] * 65535)
-        else:
-            if not 0 <= value[1] <= 65535:
-                raise ValueError(
-                    "value[1] {} not in range: 0..65535".format(value[1]))
-        if isinstance(value[2], float):
-            if not 0.0 <= value[2] <= 1.0:
-                raise ValueError(
-                    "value[2] {} not in range: 0..1".format(value[2]))
-            value[2] = int(value[2] * 65535)
-        else:
-            if not 0 <= value[2] <= 65535:
-                raise ValueError(
-                    "value[2] {} not in range: 0..65535".format(value[2]))
+    def _check_and_convert(values):
+        error_message = "values[{}] {} not in range: 0..{}"
+        for i, value in enumerate(values):
+            # check if we have float values
+            if isinstance(value, float):
+                # check if value is in range
+                if not 0.0 <= value <= 1.0:
+                    raise ValueError(error_message.format(i, value, '1'))
+                # convert to 16bit value
+                values[i] = int(value * 65535)
+            else:
+                if not 0 <= value[0] <= 65535:
+                    raise ValueError(error_message.format(i, value, '65535'))
 
     ##########################################
 
