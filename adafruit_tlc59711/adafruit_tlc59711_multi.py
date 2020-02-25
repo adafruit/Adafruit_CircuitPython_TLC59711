@@ -61,15 +61,16 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # refers to them as.
 # pylint: disable=invalid-name
 
-from micropython import const
 import struct
+
+from micropython import const
 
 
 class TLC59711Multi:
     """Multi TLC59711 16-bit 12 channel LED PWM driver.
 
     This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
-    The class has an interface compatible with the FancyLED.
+    The class has an interface compatible with the FancyLED library.
     and with this is similar to the NeoPixel and DotStar Interfaces.
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
@@ -77,8 +78,11 @@ class TLC59711Multi:
         Maximal data clock frequence is:
         - TLC59711: 10MHz
         - TLC5971: 20MHz
-    :param bool pixel_count: Number of RGB-LEDs (=Pixels) are connected.
+    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
     """
+
+    # pylint: disable=too-many-instance-attributes
+    # it just does make senes to have the chip params as attributes.
 
     # """
     # TLC5971 data / register structure
@@ -287,6 +291,60 @@ class TLC59711Multi:
 
     ##########################################
 
+    def __init__(self, spi, pixel_count=1):
+        """Init."""
+        self._spi = spi
+        # how many pixels are there?
+        self.pixel_count = pixel_count
+        self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
+        # calculate how many chips are connected
+        self.chip_count = self.pixel_count // 4
+
+        # The chips are just a big 28 byte long shift register without any
+        # fancy update protocol.  Blast out all the bits to update, that's it!
+        # create raw output data
+        self._buffer = bytearray(_CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+
+        # Initialize the brightness channel values to max
+        # (these are 7-bit values).
+        self.bcr = 127
+        self.bcg = 127
+        self.bcb = 127
+
+        # Initialize external user-facing state for the function control
+        # bits of the chip.  These aren't commonly used but available and
+        # match the nomenclature from the datasheet.
+        # you must manually call update_fc() after changing them
+        # (reduces the need to make frivolous memory-hogging properties).
+        # Default set
+        # OUTTMG, TMGRST, and DSPRPT to on
+        # like in Arduino library.
+        # these are set for all chips
+        self.outtmg = True
+        self.extgck = False
+        self.tmgrst = True
+        self.dsprpt = True
+        self.blank = False
+
+        # self._buf32_format = struct.Struct('>I')
+        # self._buf16_format = struct.Struct('>H')
+
+        # preparation done
+        # now initialize buffer to default values
+        self._init_buffer()
+
+        self._buffer_index_lookuptable = []
+        self._init_lookuptable()
+
+    def _init_buffer(self):
+        for chip_index in range(self.chip_count):
+            # set Write Command (6Bit) WRCMD (fixed: 25h)
+            self.chip_set_BCData(
+                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
+            self._chip_set_FunctionControl(chip_index)
+            self._chip_set_WriteCommand(chip_index)
+        # loop end
+
     def set_chipheader_bits_in_buffer(
             self,
             *,
@@ -316,66 +374,6 @@ class TLC59711Multi:
         self._set_32bit_value_in_buffer(header_start, header)
 
     ##########################################
-
-    def __init__(self, spi, pixel_count=1):
-        """Init."""
-        self._spi = spi
-        # how many pixels are there?
-        self.pixel_count = pixel_count
-        self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
-        # calculate how many chips are connected
-        self.chip_count = self.pixel_count // 4
-
-        # The chips are just a big 28 byte long shift register without any
-        # fancy update protocol.  Blast out all the bits to update, that's it!
-        # create raw output data
-        self._buffer = bytearray(
-            _CHIP_BUFFER_BYTE_COUNT * self.chip_count)
-
-        # Initialize the brightness channel values to max
-        # (these are 7-bit values).
-        self.bcr = 127
-        self.bcg = 127
-        self.bcb = 127
-
-        # Initialize external user-facing state for the function control
-        # bits of the chip.  These aren't commonly used but available and
-        # match the nomenclature from the datasheet.
-        # you must manually call update_fc() after changing them
-        # (reduces the need to make frivolous memory-hogging properties).
-        # Default set
-        # OUTTMG, TMGRST, and DSPRPT to on
-        # like in Arduino library.
-        # these are set for all chips
-        self.outtmg = True
-        self.extgck = False
-        self.tmgrst = True
-        self.dsprpt = True
-        self.blank = False
-
-        # self._buffer_32bit_format = struct.Struct('I')
-        # self._buffer_16bit_format = struct.Struct('H')
-
-        # preparation done
-        # now initialize buffer to default values
-        print("init buffer..")
-        self._init_buffer()
-        print("-> done")
-
-        self._buffer_index_lookuptable = []
-        self._init_lookuptable()
-
-    def _init_buffer(self):
-        for chip_index in range(self.chip_count):
-            # set Write Command (6Bit) WRCMD (fixed: 25h)
-            # buffer_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
-            # self._buffer[buffer_start] = 0x25 << 2
-
-            self.chip_set_BCData(
-                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
-            self._chip_set_FunctionControl(chip_index)
-            self._chip_set_WriteCommand(chip_index)
-        # loop end
 
     def chip_set_BCData(self, chip_index, bcr=127, bcg=127, bcb=127):
         """
@@ -474,8 +472,7 @@ class TLC59711Multi:
             buffer_index = (
                 (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR)
                 * (channel_index // self.CHANNEL_PER_CHIP)
-                + channel_index % self.CHANNEL_PER_CHIP
-            )
+                + channel_index % self.CHANNEL_PER_CHIP)
             buffer_index *= _BUFFER_BYTES_PER_COLOR
             buffer_index += _CHIP_BUFFER_HEADER_BYTE_COUNT
             self._buffer_index_lookuptable.append(buffer_index)
@@ -521,16 +518,12 @@ class TLC59711Multi:
         # (41 / Riref) * Viref  = Ioclmax
         if not 0.8 <= Riref <= 24.8:
             raise ValueError(
-                "Riref {} not in range: 0.8kΩ..25kΩ"
-                "".format(Riref)
-            )
+                "Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
         Viref = 1.21
         Ioclmax = (41 / Riref) * Viref
         if not 2.0 <= Ioclmax <= 60.0:
             raise ValueError(
-                "Ioclmax {} not in range: 2mA..60mA"
-                "".format(Ioclmax)
-            )
+                "Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
         return Ioclmax
 
     @staticmethod
@@ -549,26 +542,16 @@ class TLC59711Multi:
         """
         if not 2.0 <= Ioclmax <= 60.0:
             raise ValueError(
-                "Ioclmax {} not in range: 2mA..60mA"
-                "".format(Ioclmax)
-            )
+                "Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
         Viref = 1.21
         Riref = (Viref / Ioclmax) * 41
         if not 0.8 <= Riref <= 24.8:
             raise ValueError(
-                "Riref {} not in range: 0.8kΩ..25kΩ"
-                "".format(Riref)
-            )
+                "Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
         return Riref
 
     @staticmethod
-    def calculate_BCData(
-            *,
-            Ioclmax=18,
-            IoutR=17,
-            IoutG=15,
-            IoutB=9
-    ):
+    def calculate_BCData(*, Ioclmax=18, IoutR=17, IoutG=15, IoutB=9):
         """
         Calculate Global Brightness Control Values.
 
@@ -596,31 +579,22 @@ class TLC59711Multi:
                              "".format(Ioclmax))
         if not 0.0 <= IoutR <= Ioclmax:
             raise ValueError(
-                "IoutR {} not in range: 2mA..{}mA"
-                "".format(IoutR, Ioclmax))
+                "IoutR {} not in range: 2mA..{}mA".format(IoutR, Ioclmax))
         if not 0.0 <= IoutG <= Ioclmax:
             raise ValueError(
-                "IoutG {} not in range: 2mA..{}mA"
-                "".format(IoutG, Ioclmax))
+                "IoutG {} not in range: 2mA..{}mA".format(IoutG, Ioclmax))
         if not 0.0 <= IoutB <= Ioclmax:
             raise ValueError(
-                "IoutB {} not in range: 2mA..{}mA"
-                "".format(IoutB, Ioclmax))
+                "IoutB {} not in range: 2mA..{}mA".format(IoutB, Ioclmax))
         bcr = int((IoutR / Ioclmax) * 127)
         bcg = int((IoutG / Ioclmax) * 127)
         bcb = int((IoutB / Ioclmax) * 127)
         if not 0 <= bcr <= 127:
-            raise ValueError(
-                "bcr {} not in range: 0..127"
-                "".format(bcr))
+            raise ValueError("bcr {} not in range: 0..127".format(bcr))
         if not 0 <= bcg <= 127:
-            raise ValueError(
-                "bcg {} not in range: 0..127"
-                "".format(bcg))
+            raise ValueError("bcg {} not in range: 0..127".format(bcg))
         if not 0 <= bcb <= 127:
-            raise ValueError(
-                "bcb {} not in range: 0..127"
-                "".format(bcb))
+            raise ValueError("bcb {} not in range: 0..127".format(bcb))
         return (bcr, bcg, bcb)
 
     ##########################################
@@ -632,21 +606,19 @@ class TLC59711Multi:
         #     (self._buffer[buffer_start + 2] << 8) |
         #     self._buffer[buffer_start + 3]
         # )
-        # return self._buffer_32bit_format.unpack_from(
+        # return self._buf32_format.unpack_from(
         #     self._buffer, buffer_start)
         return struct.unpack_from('>I', self._buffer, buffer_start)[0]
 
     def _set_32bit_value_in_buffer(self, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFF:
             raise ValueError(
-                "value {} not in range: 0..0xFFFFFFFF"
-                "".format(value)
-            )
+                "value {} not in range: 0..0xFFFFFFFF".format(value))
         # self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
         # self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
         # self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
         # self._buffer[buffer_start + 3] = value & 0xFF
-        # self._buffer_32bit_format.pack_into(
+        # self._buf32_format.pack_into(
         struct.pack_into('>I', self._buffer, buffer_start, value)
 
     def _get_16bit_value_from_buffer(self, buffer_start):
@@ -654,7 +626,7 @@ class TLC59711Multi:
         #     (self._buffer[buffer_start + 0] << 8) |
         #     self._buffer[buffer_start + 1]
         # )
-        # return self._buffer_16bit_format.unpack_from(
+        # return self._buf16_format.unpack_from(
         #     self._buffer, buffer_start)[0]
         return struct.unpack_from('>H', self._buffer, buffer_start)[0]
 
@@ -666,9 +638,7 @@ class TLC59711Multi:
             )
         # self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
         # self._buffer[buffer_start + 1] = value & 0xFF
-        # self._buffer_16bit_format.pack_into(self._buffer, buffer_start,value)
-        # self._buffer_16bit_format.pack_into(
-        #     self._buffer, buffer_start, (value >> 8) & 0xFF, value & 0xFF)
+        # self._buf16_format.pack_into(self._buffer, buffer_start,value)
         struct.pack_into('>H', self._buffer, buffer_start, value)
 
     @staticmethod
@@ -676,10 +646,7 @@ class TLC59711Multi:
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
         # check if value is in range
         if not 0.0 <= value[0] <= 1.0:
-            raise ValueError(
-                "value[0] {} not in range: 0..1"
-                "".format(value[0])
-            )
+            raise ValueError("value[0] {} not in range: 0..1".format(value[0]))
         # convert to 16bit value
         return int(value * 65535)
 
@@ -697,43 +664,31 @@ class TLC59711Multi:
             # check if value is in range
             if not 0.0 <= value[0] <= 1.0:
                 raise ValueError(
-                    "value[0] {} not in range: 0..1"
-                    "".format(value[0])
-                )
+                    "value[0] {} not in range: 0..1".format(value[0]))
             # convert to 16bit value
             value[0] = int(value[0] * 65535)
         else:
             if not 0 <= value[0] <= 65535:
                 raise ValueError(
-                    "value[0] {} not in range: 0..65535"
-                    "".format(value[0])
-                )
+                    "value[0] {} not in range: 0..65535".format(value[0]))
         if isinstance(value[1], float):
             if not 0.0 <= value[1] <= 1.0:
                 raise ValueError(
-                    "value[1] {} not in range: 0..1"
-                    "".format(value[1])
-                )
+                    "value[1] {} not in range: 0..1".format(value[1]))
             value[1] = int(value[1] * 65535)
         else:
             if not 0 <= value[1] <= 65535:
                 raise ValueError(
-                    "value[1] {} not in range: 0..65535"
-                    "".format(value[1])
-                )
+                    "value[1] {} not in range: 0..65535".format(value[1]))
         if isinstance(value[2], float):
             if not 0.0 <= value[2] <= 1.0:
                 raise ValueError(
-                    "value[2] {} not in range: 0..1"
-                    "".format(value[2])
-                )
+                    "value[2] {} not in range: 0..1".format(value[2]))
             value[2] = int(value[2] * 65535)
         else:
             if not 0 <= value[2] <= 65535:
                 raise ValueError(
-                    "value[2] {} not in range: 0..65535"
-                    "".format(value[2])
-                )
+                    "value[2] {} not in range: 0..65535".format(value[2]))
 
     ##########################################
 
@@ -905,8 +860,7 @@ class TLC59711Multi:
         else:
             raise IndexError(
                 "index {} out of range [0..{}]"
-                "".format(pixel_index, self.pixel_count)
-            )
+                "".format(pixel_index, self.pixel_count))
 
     def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
         """
@@ -946,9 +900,7 @@ class TLC59711Multi:
         if 0 <= channel_index < (self.channel_count):
             # check if values are in range
             if not 0 <= value <= 65535:
-                raise ValueError(
-                    "value {} not in range: 0..65535"
-                )
+                raise ValueError("value {} not in range: 0..65535")
             # temp = channel_index
             # we change channel order here:
             # buffer channel order is blue, green, red
@@ -963,11 +915,8 @@ class TLC59711Multi:
             )
         else:
             raise IndexError(
-                "channel_index {} out of range (0..{})".format(
-                    channel_index,
-                    self.channel_count
-                )
-            )
+                "channel_index {} out of range (0..{})"
+                .format(channel_index, self.channel_count))
 
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
@@ -988,11 +937,9 @@ class TLC59711Multi:
                 self._get_channel_16bit_value(pixel_start + 1),
                 self._get_channel_16bit_value(pixel_start + 2)
             )
-        else:
-            raise IndexError(
-                "index {} out of range [0..{}]"
-                "".format(key, self.pixel_count)
-            )
+        # else:
+        raise IndexError(
+            "index {} out of range [0..{}]".format(key, self.pixel_count))
 
     def __setitem__(self, key, value):
         """

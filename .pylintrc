@@ -175,7 +175,9 @@ missing-member-max-choices=1
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
-additional-builtins=
+# this fixes the E0602: Undefined variable error for the micropython const defined values.
+additional-builtins=_CHIP_BUFFER_BYTE_COUNT, _BC_CHIP_BUFFER_BIT_OFFSET, _FC_CHIP_BUFFER_BIT_OFFSET, _WC_CHIP_BUFFER_BIT_OFFSET, _BUFFER_BYTES_PER_COLOR, _CHIP_BUFFER_HEADER_BYTE_COUNT
+
 
 # Tells whether unused global variables should be treated as a violation.
 allow-global-unused-variables=yes
