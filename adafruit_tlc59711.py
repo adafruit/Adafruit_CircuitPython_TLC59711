@@ -48,21 +48,21 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # Globally disable invalid-name check as this chip by design has short channel
 # and register names.  It is confusing to rename these from what the datasheet
 # refers to them as.
-#pylint: disable=invalid-name
+# pylint: disable=invalid-name
 
 # Globally disable too many instance attributes check.  Again this is a case
 # where pylint doesn't have the right context to make this call.  The chip by
 # design has many channels which must be exposed.
-#pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes
 
 # Globally disable protected access.  Once again pylint can't figure out the
 # context for using internal decorate classes below.  In these cases protectected
 # access is by design for the internal class.
-#pylint: disable=protected-access
+# pylint: disable=protected-access
 
 # Yet another pylint issue, it fails to recognize a decorator class by
 # definition has no public methods.  Disable the check.
-#pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods
 
 
 def _shift_in(target_byte, val):
@@ -104,14 +104,15 @@ class TLC59711:
 
         def __get__(self, obj, obj_type):
             # Grab the 16-bit value at the offset for this channel.
-            return (obj._shift_reg[self._byte_offset] << 8) | \
-                    obj._shift_reg[self._byte_offset+1]
+            return (obj._shift_reg[self._byte_offset] << 8) | obj._shift_reg[
+                self._byte_offset + 1
+            ]
 
         def __set__(self, obj, val):
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= val <= 65535
             obj._shift_reg[self._byte_offset] = (val >> 8) & 0xFF
-            obj._shift_reg[self._byte_offset+1] = val & 0xFF
+            obj._shift_reg[self._byte_offset + 1] = val & 0xFF
             # Write out the new values if auto_show is enabled.
             if obj.auto_show:
                 obj._write()
@@ -137,7 +138,6 @@ class TLC59711:
     b0 = _GS_Value(22)
     g0 = _GS_Value(24)
     r0 = _GS_Value(26)
-
 
     def __init__(self, spi, *, auto_show=True):
         self._spi = spi
@@ -288,8 +288,8 @@ class TLC59711:
            3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
         """
         assert 0 <= key <= 3  # Do this check here instead of later to
-                              # prevent accidentally keeping auto_show
-                              # turned off when a bad key is provided.
+        # prevent accidentally keeping auto_show
+        # turned off when a bad key is provided.
         assert len(val) == 3
         assert 0 <= val[0] <= 65535
         assert 0 <= val[1] <= 65535
