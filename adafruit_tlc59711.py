@@ -174,7 +174,7 @@ class TLC59711:
             # Lock the SPI bus and configure it for the shift register.
             while not self._spi.try_lock():
                 pass
-            self._spi.configure(baudrate=10000000, polarity=0, phase=0)
+            self._spi.configure(baudrate=self._spi.frequency, polarity=0, phase=0)
             # Update the preamble of chip state in the first 4 bytes (32-bits)
             # with the write command, function control bits, and brightness
             # control register values.
