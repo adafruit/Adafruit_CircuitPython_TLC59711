@@ -16,7 +16,7 @@ from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
 
 
 ##########################################
-pixel_count = 16*9
+pixel_count = 16*1
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = TLC59711Multi(spi, pixel_count=pixel_count)
@@ -523,6 +523,7 @@ def test_main():
     while True:
         offset = channelcheck_update(offset)
         time.sleep(0.5)
+        print(offset)
 
 
 ##########################################
