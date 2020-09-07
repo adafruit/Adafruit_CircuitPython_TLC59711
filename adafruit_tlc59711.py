@@ -1,3 +1,4 @@
+
 # The MIT License (MIT)
 #
 # Copyright (c) 2017 Tony DiCola for Adafruit Industries
@@ -19,12 +20,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
+
 """
 `adafruit_tlc59711`
 ====================================================
 
-CircuitPython module for the TLC59711 16-bit 12 channel LED PWM driver.  See
-examples/simpletest.py for a demo of the usage.
+CircuitPython module for the
+TLC59711 16-bit 12 channel LED PWM driver.
+See examples/simpletest.py for a demo of the usage.
 
 * Author(s): Tony DiCola
 

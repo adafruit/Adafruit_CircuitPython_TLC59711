@@ -293,7 +293,7 @@ class TLC59711Multi:
 
     ##########################################
 
-    def __init__(self, spi, pixel_count=1):
+    def __init__(self, spi, pixel_count=4):
         """Init."""
         self._spi = spi
         # how many pixels are there?
@@ -911,7 +911,7 @@ class TLC59711Multi:
                 "channel_index {} out of range (0..{})"
                 .format(channel_index, self.channel_count))
 
-    # Define index and length properties to set and get each channel as
+    # Define index and length properties to set and get each pixel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
     def __len__(self):
         """Retrieve TLC5975 the total number of Pixels available."""
