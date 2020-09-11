@@ -15,15 +15,14 @@ import time
 import board
 import busio
 
-# from adafruit_tlc59711.adafruit_tlc59711 import TLC59711
-from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
+import adafruit_tlc59711
 
 
 ##########################################
 pixel_count = 16
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-pixels = TLC59711Multi(spi, pixel_count=pixel_count)
+pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=pixel_count)
 
 
 ##########################################
@@ -57,7 +56,7 @@ def test_main():
     print(__doc__, end="")
     print(42 * '*')
 
-    bcvalues = TLC59711Multi.calculate_BCData(
+    bcvalues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
         Ioclmax=18,
         IoutR=18,
         IoutG=11,

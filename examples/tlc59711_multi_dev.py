@@ -1,7 +1,7 @@
 """TLC5971 / TLC59711 Multi."""
 
 __doc__ = """
-TLC59711Multi development helper.
+adafruit_tlc59711.TLC59711Multi development helper.
 
 this sketch contains a bunch of timing tests and other development helpers..
 Enjoy the colors :-)
@@ -12,14 +12,14 @@ import time
 import board
 import busio
 
-from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
+import adafruit_tlc59711
 
 
 ##########################################
 pixel_count = 16*1
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-pixels = TLC59711Multi(spi, pixel_count=pixel_count)
+pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=pixel_count)
 
 
 ##########################################
@@ -462,11 +462,11 @@ def test_BCData():
         )
     )
     # calculate bc values
-    Ioclmax = TLC59711Multi.calculate_Ioclmax(Riref=2.7)
+    Ioclmax = adafruit_tlc59711.TLC59711Multi.calculate_Ioclmax(Riref=2.7)
     print("Ioclmax = {}".format(Ioclmax))
-    Riref = TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
+    Riref = adafruit_tlc59711.TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
     print("Riref = {}".format(Riref))
-    BCValues = TLC59711Multi.calculate_BCData(
+    BCValues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
         Ioclmax=Ioclmax,
         IoutR=18,
         IoutG=11,

@@ -7,6 +7,8 @@ import busio
 import adafruit_tlc59711
 
 
+# TODO: s-light fix removed things
+
 # Define SPI bus connected to chip.  You only need the clock and MOSI (output)
 # line to use this chip.
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)

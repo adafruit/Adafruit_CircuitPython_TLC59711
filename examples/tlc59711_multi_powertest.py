@@ -13,14 +13,14 @@ import board
 import busio
 import supervisor
 
-from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
+import adafruit_tlc59711
 
 
 ##########################################
 pixel_count = 16*2
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-pixels = TLC59711Multi(spi, pixel_count=pixel_count)
+pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=pixel_count)
 
 ##########################################
 
@@ -44,7 +44,7 @@ def main_loop():
             IoutB = float(IoutB)
         except ValueError as e:
             print("Exception: ", e)
-        BCValues = TLC59711Multi.calculate_BCData(
+        BCValues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
             Ioclmax=Ioclmax,
             IoutR=IoutR,
             IoutG=IoutG,
@@ -81,11 +81,11 @@ def test_main():
     print("set pixel all to 100, 100, 100")
     pixels.set_pixel_all((5000, 5000, 5000))
     # calculate bc values
-    Ioclmax = TLC59711Multi.calculate_Ioclmax(Riref=2.7)
+    Ioclmax = adafruit_tlc59711.TLC59711Multi.calculate_Ioclmax(Riref=2.7)
     print("Ioclmax = {}".format(Ioclmax))
-    Riref = TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
+    Riref = adafruit_tlc59711.TLC59711Multi.calculate_Riref(Ioclmax=Ioclmax)
     print("Riref = {}".format(Riref))
-    BCValues = TLC59711Multi.calculate_BCData(
+    BCValues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
         Ioclmax=Ioclmax,
         IoutR=18,
         IoutG=11,

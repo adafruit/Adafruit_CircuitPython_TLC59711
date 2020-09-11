@@ -12,15 +12,14 @@ Enjoy the colors :-)
 import board
 import busio
 
-# import adafruit_tlc59711
-from adafruit_tlc59711.adafruit_tlc59711_multi import TLC59711Multi
+import adafruit_tlc59711
 
 # Define SPI bus connected to chip.
 # You only need the clock and MOSI (output) line to use this chip.
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 
 # Define the TLC59711 instance.
-pixels = TLC59711Multi(spi, pixel_count=16)
+pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=16)
 
 
 print("tlc59711_minimal.py")
