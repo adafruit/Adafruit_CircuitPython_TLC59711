@@ -65,6 +65,7 @@ import struct
 
 from micropython import const
 
+
 class TLC59711Multi:
     """Multi TLC59711 16-bit 12 channel LED PWM driver.
 
@@ -964,3 +965,110 @@ class TLC59711Multi:
             )
 
 ##########################################
+
+
+class TLC59711(TLC59711Multi):
+    """Multi TLC59711 16-bit 12 channel LED PWM driver.
+
+    This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
+    The class has an interface compatible with the FancyLED library.
+    and with this is similar to the NeoPixel and DotStar Interfaces.
+
+    this TLC59711 is a subclass of TLC59711Multi.
+    just for compatiblility.
+    here maybee some of the original API will get implemented
+
+    :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
+        The clock and MOSI/outout must be set, the MISO/input is unused.
+        Maximal data clock frequence is:
+        - TLC59711: 10MHz
+        - TLC5971: 20MHz
+    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
+    """
+
+    class _ChannelDirekt:
+        # Internal decorator to simplify mapping.
+
+        def __init__(self, channel):
+            self._channel = channel
+
+        def __get__(self, obj, obj_type):
+            # Grab the 16-bit value at the offset for this channel.
+            return obj._get_channel_16bit_value(self._channel)
+
+        def __set__(self, obj, value):
+            # Set the 16-bit value at the offset for this channel.
+            assert 0 <= value <= 65535
+            obj._set_channel_16bit_value(self._channel, value)
+            # Write out the new values if auto_show is enabled.
+            # if obj.auto_show:
+            #     obj._write()
+
+    # Define explicit channels for first IC.
+    # this is only for api backwards compliance.
+    b0 = _ChannelDirekt(0)
+    g0 = _ChannelDirekt(1)
+    r0 = _ChannelDirekt(2)
+
+    b1 = _ChannelDirekt(3)
+    g1 = _ChannelDirekt(4)
+    r1 = _ChannelDirekt(5)
+
+    b2 = _ChannelDirekt(6)
+    g2 = _ChannelDirekt(7)
+    r2 = _ChannelDirekt(8)
+
+    b3 = _ChannelDirekt(9)
+    g3 = _ChannelDirekt(10)
+    r3 = _ChannelDirekt(11)
+
+    def __init__(self, spi, pixel_count=4):
+        """Init."""
+        super(TLC59711, self).__init__(spi, pixel_count=pixel_count)
+
+    # old stuff...
+    # i think it is good to leave this out.
+    # @property
+    # def red_brightness(self):
+    #     """The red brightness for all channels (i.e. R0, R1, R2, and R3).
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcr
+    #
+    # @red_brightness.setter
+    # def red_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcr = val
+    #     if self.auto_show:
+    #         self._write()
+    #
+    # @property
+    # def green_brightness(self):
+    #     """The green brightness for all channels (i.e. G0, G1, G2, and G3).
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcg
+    #
+    # @green_brightness.setter
+    # def green_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcg = val
+    #     if self.auto_show:
+    #         self._write()
+    #
+    # @property
+    # def blue_brightness(self):
+    #     """The blue brightness for all channels (i.e. B0, B1, B2, and B3).
+    #
+    #     This is a 7-bit value from 0-127.
+    #     """
+    #     return self._bcb
+    #
+    # @blue_brightness.setter
+    # def blue_brightness(self, val):
+    #     assert 0 <= val <= 127
+    #     self._bcb = val
+    #     if self.auto_show:
+    #         self._write()
