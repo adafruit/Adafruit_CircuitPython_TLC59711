@@ -28,15 +28,16 @@ pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=pixel_count)
 ##########################################
 # test function
 
+
 def channelcheck_update_pixel(offset):
     """Channel check pixel."""
     # print("offset", offset)
 
     pixels.set_pixel_16bit_value(offset, 1000, 100, 0)
     # clear last pixel
-    last = offset-1
+    last = offset - 1
     if last < 0:
-        last = pixel_count-1
+        last = pixel_count - 1
     pixels.set_pixel_16bit_value(last, 0, 0, 1)
     pixels.show()
 
@@ -52,9 +53,9 @@ def channelcheck_update_pixel(offset):
 
 def test_main():
     """Test Main."""
-    print(42 * '*', end="")
+    print(42 * "*", end="")
     print(__doc__, end="")
-    print(42 * '*')
+    print(42 * "*")
 
     bcvalues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
         Ioclmax=18,
@@ -80,6 +81,6 @@ def test_main():
 ##########################################
 # main loop
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     test_main()

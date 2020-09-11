@@ -1,7 +1,7 @@
 """TLC5971 / TLC59711."""
 
 __doc__ = """
-tlc59711_onechip.py - TLC59711 minimal usage example.
+tlc59711_singlechip.py - TLC59711 minimal usage example.
 
 simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
 Shows the minimal usage - how to set pixel values.

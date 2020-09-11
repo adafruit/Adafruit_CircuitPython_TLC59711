@@ -1,13 +1,24 @@
-# Simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
-# Shows setting channel values in a few ways.
-# Author: Tony DiCola
+"""TLC5971 / TLC59711."""
+
+__doc__ = """
+tlc59711_fastset.py - TLC59711 fast set example.
+
+showcases the usage of set_pixel_16bit_value for fastests setting of values.
+for speed comparision of all the available set calls
+look at the tlc59711_multi_dev.py file.
+
+Simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
+Shows setting channel values in a few ways.
+Author: Tony DiCola, Stefan Krüger
+"""
+
 import board
 import busio
 
 import adafruit_tlc59711
 
 
-# TODO: s-light fix removed things
+# TODO: s-light fix removed params
 
 # Define SPI bus connected to chip.  You only need the clock and MOSI (output)
 # line to use this chip.

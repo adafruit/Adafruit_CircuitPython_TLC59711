@@ -1,4 +1,3 @@
-
 # The MIT License (MIT).
 #
 # Copyright (c) 2017 Tony DiCola for Adafruit Industries
@@ -302,8 +301,7 @@ class TLC59711Multi:
     ##########################################
 
     ########
-    _CHIP_BUFFER_HEADER_BIT_COUNT = const(
-        _WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT)
+    _CHIP_BUFFER_HEADER_BIT_COUNT = const(_WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT)
     _CHIP_BUFFER_HEADER_BYTE_COUNT = const(_CHIP_BUFFER_HEADER_BIT_COUNT // 8)
 
     ##########################################
@@ -356,21 +354,22 @@ class TLC59711Multi:
     def _init_buffer(self):
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
-            self.chip_set_BCData(
-                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
+            self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
             self._chip_set_FunctionControl(chip_index)
             self._chip_set_WriteCommand(chip_index)
         # loop end
 
     def set_chipheader_bits_in_buffer(
-            self,
-            *,
-            chip_index=0,
-            part_bit_offset=0,
-            field={"mask": 0, "length": 0, "offset": 0},
-            value=0
+        self,
+        *,
+        chip_index=0,
+        part_bit_offset=0,
+        field=None,
+        value=0
     ):
         """Set chip header bits in buffer."""
+        if field is None:
+            field = {"mask": 0, "length": 0, "offset": 0}
         offset = part_bit_offset + field["offset"]
         # restrict value
         value &= field["mask"]
@@ -379,16 +378,16 @@ class TLC59711Multi:
         # calculate header start
         header_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
         # get chip header
-        header = struct.unpack_from('>I', self._buffer, header_start)[0]
+        header = struct.unpack_from(">I", self._buffer, header_start)[0]
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
         mask = field["mask"] << offset
         # clear
-        header &= (~mask)
+        header &= ~mask
         # set
         header |= value
         # write header back
-        struct.pack_into('>I', self._buffer, header_start, header)
+        struct.pack_into(">I", self._buffer, header_start, header)
 
     ##########################################
 
@@ -406,17 +405,20 @@ class TLC59711Multi:
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCR"],
-            value=bcr)
+            value=bcr,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCG"],
-            value=bcg)
+            value=bcg,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
             field=self._BC_FIELDS["BCB"],
-            value=bcb)
+            value=bcb,
+        )
 
     def update_BCData(self):
         """
@@ -426,8 +428,7 @@ class TLC59711Multi:
         BC-Data Parameters. (bcr, bcg, bcb)
         """
         for chip_index in range(self.chip_count):
-            self.chip_set_BCData(
-                chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
+            self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
 
     def _chip_set_FunctionControl(self, chip_index):
         """
@@ -442,27 +443,32 @@ class TLC59711Multi:
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["OUTTMG"],
-            value=self.outtmg)
+            value=self.outtmg,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["EXTGCK"],
-            value=self.extgck)
+            value=self.extgck,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["TMGRST"],
-            value=self.tmgrst)
+            value=self.tmgrst,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["DSPRPT"],
-            value=self.dsprpt)
+            value=self.dsprpt,
+        )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
             field=self._FC_FIELDS["BLANK"],
-            value=self.blank)
+            value=self.blank,
+        )
 
     def update_fc(self):
         """
@@ -482,14 +488,14 @@ class TLC59711Multi:
             chip_index=chip_index,
             part_bit_offset=_WC_CHIP_BUFFER_BIT_OFFSET,
             field=self._WC_FIELDS["WRITE_COMMAND"],
-            value=self.WRITE_COMMAND)
+            value=self.WRITE_COMMAND,
+        )
 
     def _init_lookuptable(self):
         for channel_index in range(self.channel_count):
-            buffer_index = (
-                (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR)
-                * (channel_index // self.CHANNEL_PER_CHIP)
-                + channel_index % self.CHANNEL_PER_CHIP)
+            buffer_index = (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR) * (
+                channel_index // self.CHANNEL_PER_CHIP
+            ) + channel_index % self.CHANNEL_PER_CHIP
             buffer_index *= _BUFFER_BYTES_PER_COLOR
             buffer_index += _CHIP_BUFFER_HEADER_BYTE_COUNT
             self._buffer_index_lookuptable.append(buffer_index)
@@ -534,13 +540,11 @@ class TLC59711Multi:
         # 41 / Riref            = Ioclmax / Viref           | * Viref
         # (41 / Riref) * Viref  = Ioclmax
         if not 0.8 <= Riref <= 24.8:
-            raise ValueError(
-                "Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
+            raise ValueError("Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
         Viref = 1.21
         Ioclmax = (41 / Riref) * Viref
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError(
-                "Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
+            raise ValueError("Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
         return Ioclmax
 
     @staticmethod
@@ -558,13 +562,11 @@ class TLC59711Multi:
         :return tuple: Riref (kΩ)
         """
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError(
-                "Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
+            raise ValueError("Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
         Viref = 1.21
         Riref = (Viref / Ioclmax) * 41
         if not 0.8 <= Riref <= 24.8:
-            raise ValueError(
-                "Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
+            raise ValueError("Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
         return Riref
 
     @staticmethod
@@ -592,17 +594,13 @@ class TLC59711Multi:
         # Iout / Ioclmax       =  BCX / 127              | * 127
         # Iout / Ioclmax * 127 =  BCX
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError("Ioclmax {} not in range: 2mA..60mA"
-                             "".format(Ioclmax))
+            raise ValueError("Ioclmax {} not in range: 2mA..60mA" "".format(Ioclmax))
         if not 0.0 <= IoutR <= Ioclmax:
-            raise ValueError(
-                "IoutR {} not in range: 2mA..{}mA".format(IoutR, Ioclmax))
+            raise ValueError("IoutR {} not in range: 2mA..{}mA".format(IoutR, Ioclmax))
         if not 0.0 <= IoutG <= Ioclmax:
-            raise ValueError(
-                "IoutG {} not in range: 2mA..{}mA".format(IoutG, Ioclmax))
+            raise ValueError("IoutG {} not in range: 2mA..{}mA".format(IoutG, Ioclmax))
         if not 0.0 <= IoutB <= Ioclmax:
-            raise ValueError(
-                "IoutB {} not in range: 2mA..{}mA".format(IoutB, Ioclmax))
+            raise ValueError("IoutB {} not in range: 2mA..{}mA".format(IoutB, Ioclmax))
         bcr = int((IoutR / Ioclmax) * 127)
         bcg = int((IoutG / Ioclmax) * 127)
         bcb = int((IoutB / Ioclmax) * 127)
@@ -655,38 +653,32 @@ class TLC59711Multi:
         if isinstance(value[0], float):
             # check if value is in range
             if not 0.0 <= value[0] <= 1.0:
-                raise ValueError(
-                    "value[0] {} not in range: 0..1".format(value[0]))
+                raise ValueError("value[0] {} not in range: 0..1".format(value[0]))
             # convert to 16bit value
             value[0] = int(value[0] * 65535)
         else:
             if not 0 <= value[0] <= 65535:
-                raise ValueError(
-                    "value[0] {} not in range: 0..65535".format(value[0]))
+                raise ValueError("value[0] {} not in range: 0..65535".format(value[0]))
         if isinstance(value[1], float):
             if not 0.0 <= value[1] <= 1.0:
-                raise ValueError(
-                    "value[1] {} not in range: 0..1".format(value[1]))
+                raise ValueError("value[1] {} not in range: 0..1".format(value[1]))
             value[1] = int(value[1] * 65535)
         else:
             if not 0 <= value[1] <= 65535:
-                raise ValueError(
-                    "value[1] {} not in range: 0..65535".format(value[1]))
+                raise ValueError("value[1] {} not in range: 0..65535".format(value[1]))
         if isinstance(value[2], float):
             if not 0.0 <= value[2] <= 1.0:
-                raise ValueError(
-                    "value[2] {} not in range: 0..1".format(value[2]))
+                raise ValueError("value[2] {} not in range: 0..1".format(value[2]))
             value[2] = int(value[2] * 65535)
         else:
             if not 0 <= value[2] <= 65535:
-                raise ValueError(
-                    "value[2] {} not in range: 0..65535".format(value[2]))
+                raise ValueError("value[2] {} not in range: 0..65535".format(value[2]))
 
     ##########################################
 
     def _get_channel_16bit_value(self, channel_index):
         buffer_start = self._buffer_index_lookuptable[channel_index]
-        return struct.unpack_from('>H', self._buffer, buffer_start)[0]
+        return struct.unpack_from(">H", self._buffer, buffer_start)[0]
 
     def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
         """
@@ -864,12 +856,11 @@ class TLC59711Multi:
             # self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
             # self._buffer[buffer_start + 1] = value[0] & 0xFF
             # simpliefy code
-            self.set_pixel_16bit_value(
-                pixel_index, value[0], value[1], value[2])
+            self.set_pixel_16bit_value(pixel_index, value[0], value[1], value[2])
         else:
             raise IndexError(
-                "index {} out of range [0..{}]"
-                "".format(pixel_index, self.pixel_count))
+                "index {} out of range [0..{}]" "".format(pixel_index, self.pixel_count)
+            )
 
     def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
         """
@@ -920,11 +911,13 @@ class TLC59711Multi:
                 channel_index -= 2
             # set value in buffer
             buffer_start = self._buffer_index_lookuptable[channel_index]
-            struct.pack_into('>H', self._buffer, buffer_start, value)
+            struct.pack_into(">H", self._buffer, buffer_start, value)
         else:
             raise IndexError(
-                "channel_index {} out of range (0..{})"
-                .format(channel_index, self.channel_count))
+                "channel_index {} out of range (0..{})".format(
+                    channel_index, self.channel_count
+                )
+            )
 
     # Define index and length properties to set and get each pixel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
@@ -943,11 +936,10 @@ class TLC59711Multi:
             return (
                 self._get_channel_16bit_value(pixel_start + 0),
                 self._get_channel_16bit_value(pixel_start + 1),
-                self._get_channel_16bit_value(pixel_start + 2)
+                self._get_channel_16bit_value(pixel_start + 2),
             )
         # else:
-        raise IndexError(
-            "index {} out of range [0..{}]".format(key, self.pixel_count))
+        raise IndexError("index {} out of range [0..{}]".format(key, self.pixel_count))
 
     def __setitem__(self, key, value):
         """
@@ -975,9 +967,9 @@ class TLC59711Multi:
             self.set_pixel_16bit_value(key, value[0], value[1], value[2])
         else:
             raise IndexError(
-                "index {} out of range [0..{}]"
-                "".format(key, self.pixel_count)
+                "index {} out of range [0..{}]" "".format(key, self.pixel_count)
             )
+
 
 ##########################################
 

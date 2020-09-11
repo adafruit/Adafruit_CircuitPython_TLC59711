@@ -17,7 +17,7 @@ import adafruit_tlc59711
 
 
 ##########################################
-pixel_count = 16*2
+pixel_count = 16 * 2
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=pixel_count)
@@ -37,7 +37,7 @@ def main_loop():
     else:
         Ioclmax, IoutR, IoutG, IoutB = (18, 18, 11, 13)
         try:
-            Ioclmax, IoutR, IoutG, IoutB = new_value.split(';')
+            Ioclmax, IoutR, IoutG, IoutB = new_value.split(";")
             Ioclmax = float(Ioclmax)
             IoutR = float(IoutR)
             IoutG = float(IoutG)
@@ -71,9 +71,9 @@ def main_loop():
 
 def test_main():
     """Test Main."""
-    print(42 * '*', end="")
+    print(42 * "*", end="")
     print(__doc__, end="")
-    print(42 * '*')
+    print(42 * "*")
     # print()
     # time.sleep(0.5)
     # print(42 * '*')
@@ -114,6 +114,6 @@ def test_main():
 ##########################################
 # main loop
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     test_main()
