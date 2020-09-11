@@ -43,8 +43,7 @@ Implementation Notes
 
 **Software and Dependencies:**
 
-* this is a variant with multi-chip support.
-    The API is mostly compatible to the DotStar / NeoPixel Libraries
+* The API is mostly compatible to the DotStar / NeoPixel Libraries
     and is therefore also compatible with FancyLED.
     for this see examples/fancy_multi.py
 
@@ -55,25 +54,10 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 
 
-# Globally disable invalid-name check as this chip by design has short channel
-# and register names.  It is confusing to rename these from what the datasheet
-# refers to them as.
+# Globally disable pylint things
+# invalid-name:  this chip by design has short channel and register names.
+# It is confusing to rename these from what the datasheet refers to them as.
 # pylint: disable=invalid-name
-
-# Globally disable too many instance attributes check.  Again this is a case
-# where pylint doesn't have the right context to make this call.  The chip by
-# design has many channels which must be exposed.
-# pylint: disable=too-many-instance-attributes
-
-# Globally disable protected access.  Once again pylint can't figure out the
-# context for using internal decorate classes below.  In these cases protectected
-# access is by design for the internal class.
-# pylint: disable=protected-access
-
-# Yet another pylint issue, it fails to recognize a decorator class by
-# definition has no public methods.  Disable the check.
-# pylint: disable=too-few-public-methods
-
 
 import struct
 
@@ -309,45 +293,34 @@ class TLC59711Multi:
     def __init__(self, spi, *, pixel_count=4):
         """Init."""
         self._spi = spi
-        # how many pixels are there?
         self.pixel_count = pixel_count
         self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 4
 
-        # The chips are just a big 28 byte long shift register without any
-        # fancy update protocol.  Blast out all the bits to update, that's it!
-        # create raw output data
+        # The chips are just a big 28 byte long shift register without any fancy update protocol.
+        # Blast out all the bits to update, that's it! → create raw output data
         self._buffer = bytearray(_CHIP_BUFFER_BYTE_COUNT * self.chip_count)
 
-        # Initialize the brightness channel values to max
-        # (these are 7-bit values).
+        # Initialize the brightness channel values to max (these are 7-bit values).
         self.bcr = 127
         self.bcg = 127
         self.bcb = 127
 
-        # Initialize external user-facing state for the function control
-        # bits of the chip.  These aren't commonly used but available and
-        # match the nomenclature from the datasheet.
+        # Initialize external user-facing state for the function control bits of the chip.
+        # These aren't commonly used but available and match the nomenclature from the datasheet.
         # you must manually call update_fc() after changing them
         # (reduces the need to make frivolous memory-hogging properties).
-        # Default set
-        # OUTTMG, TMGRST, and DSPRPT to on
-        # like in Arduino library.
-        # these are set for all chips
+        # Default set: OUTTMG, TMGRST, and DSPRPT to on; like in Arduino library.
+        # these are set for all chips the same
         self.outtmg = True
         self.extgck = False
         self.tmgrst = True
         self.dsprpt = True
         self.blank = False
 
-        # self._buf32_format = struct.Struct('>I')
-        # self._buf16_format = struct.Struct('>H')
-
-        # preparation done
-        # now initialize buffer to default values
+        # preparation done → now initialize buffer to default values
         self._init_buffer()
-
         self._buffer_index_lookuptable = []
         self._init_lookuptable()
 
@@ -357,15 +330,9 @@ class TLC59711Multi:
             self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
             self._chip_set_FunctionControl(chip_index)
             self._chip_set_WriteCommand(chip_index)
-        # loop end
 
     def set_chipheader_bits_in_buffer(
-        self,
-        *,
-        chip_index=0,
-        part_bit_offset=0,
-        field=None,
-        value=0
+        self, *, chip_index=0, part_bit_offset=0, field=None, value=0
     ):
         """Set chip header bits in buffer."""
         if field is None:
@@ -424,8 +391,7 @@ class TLC59711Multi:
         """
         Update BC-Data for all Chips in Buffer.
 
-        need to be called after you changed on of the
-        BC-Data Parameters. (bcr, bcg, bcb)
+        need to be called after you changed on of the BC-Data Parameters. (bcr, bcg, bcb)
         """
         for chip_index in range(self.chip_count):
             self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
@@ -474,8 +440,7 @@ class TLC59711Multi:
         """
         Update Function Control Bits for all Chips in Buffer.
 
-        need to be called after you changed on of the
-        Function Control Bit Parameters.
+        need to be called after you changed on of the Function Control Bit Parameters.
         (outtmg, extgck, tmgrst, dsprpt, blank)
         """
         for chip_index in range(self.chip_count):
@@ -981,8 +946,7 @@ class TLC59711(TLC59711Multi):
     The class has an interface compatible with the FancyLED library.
     and with this is similar to the NeoPixel and DotStar Interfaces.
 
-    this TLC59711 is a subclass of TLC59711Multi.
-    just for compatiblility.
+    this TLC59711 is a subclass of TLC59711Multi just for compatiblility.
     here maybee some of the original API will get implemented
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
@@ -993,8 +957,6 @@ class TLC59711(TLC59711Multi):
     :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
     """
 
-    # :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.  The clock and
-    #     MOSI/outout must be set, the MISO/input is unused.
     # :param bool auto_show: This is a boolean that defaults to True and indicates any
     #     change to a channel value will instantly be written to the chip. You might wish to
     #     set this to false if you desire to perform your own atomic operations of channel
@@ -1014,24 +976,19 @@ class TLC59711(TLC59711Multi):
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= value <= 65535
             obj._set_channel_16bit_value(self._channel, value)
-            # Write out the new values if auto_show is enabled.
             # if obj.auto_show:
             #     obj._write()
 
-    # Define explicit channels for first IC.
-    # this is only for api backwards compliance.
+    # Define explicit channels for first IC. → this is only for api backwards compliance.
     b0 = _ChannelDirekt(0)
     g0 = _ChannelDirekt(1)
     r0 = _ChannelDirekt(2)
-
     b1 = _ChannelDirekt(3)
     g1 = _ChannelDirekt(4)
     r1 = _ChannelDirekt(5)
-
     b2 = _ChannelDirekt(6)
     g2 = _ChannelDirekt(7)
     r2 = _ChannelDirekt(8)
-
     b3 = _ChannelDirekt(9)
     g3 = _ChannelDirekt(10)
     r3 = _ChannelDirekt(11)
@@ -1039,50 +996,3 @@ class TLC59711(TLC59711Multi):
     def __init__(self, spi, pixel_count=4):
         """Init."""
         super(TLC59711, self).__init__(spi, pixel_count=pixel_count)
-
-    # old stuff...
-    # i think it is good to leave this out.
-    # @property
-    # def red_brightness(self):
-    #     """The red brightness for all channels (i.e. R0, R1, R2, and R3).
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcr
-    #
-    # @red_brightness.setter
-    # def red_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcr = val
-    #     if self.auto_show:
-    #         self._write()
-    #
-    # @property
-    # def green_brightness(self):
-    #     """The green brightness for all channels (i.e. G0, G1, G2, and G3).
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcg
-    #
-    # @green_brightness.setter
-    # def green_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcg = val
-    #     if self.auto_show:
-    #         self._write()
-    #
-    # @property
-    # def blue_brightness(self):
-    #     """The blue brightness for all channels (i.e. B0, B1, B2, and B3).
-    #
-    #     This is a 7-bit value from 0-127.
-    #     """
-    #     return self._bcb
-    #
-    # @blue_brightness.setter
-    # def blue_brightness(self, val):
-    #     assert 0 <= val <= 127
-    #     self._bcb = val
-    #     if self.auto_show:
-    #         self._write()

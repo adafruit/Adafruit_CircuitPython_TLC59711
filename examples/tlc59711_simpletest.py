@@ -18,8 +18,6 @@ import busio
 import adafruit_tlc59711
 
 
-# TODO: s-light fix removed params
-
 # Define SPI bus connected to chip.  You only need the clock and MOSI (output)
 # line to use this chip.
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
@@ -50,14 +48,4 @@ leds[1] = (65535, 0, 0)
 # For example set channel 2 to full green (i.e. G2 to maximum):
 leds.g2 = 65535
 # Again don't forget to call show if you disabled auto_show above.
-# leds.show()
-
-# The chip also supports global brightness channels to change the red, green,
-# blue colors of all 4 channels at once.  These are 7-bit values that range
-# from 0-127.  Get and set them with the red_brightness, green_brightness,
-# and blue_brightness properties and again be sure to call show if you
-# disabled auto_show.
-# For example set the red channel to half brightness globally.
-leds.red_brightness = 63
-# Don't forget to call show if you disabled auto_show above.
 # leds.show()

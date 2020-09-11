@@ -1,4 +1,3 @@
-
 # The MIT License (MIT)
 #
 # Copyright (c) 2017 Tony DiCola for Adafruit Industries
@@ -110,8 +109,9 @@ class TLC59711:
 
         def __get__(self, obj, obj_type):
             # Grab the 16-bit value at the offset for this channel.
-            return (obj._shift_reg[self._byte_offset] << 8) | \
-                obj._shift_reg[self._byte_offset + 1]
+            return (obj._shift_reg[self._byte_offset] << 8) | obj._shift_reg[
+                self._byte_offset + 1
+            ]
 
         def __set__(self, obj, val):
             # Set the 16-bit value at the offset for this channel.
@@ -143,7 +143,6 @@ class TLC59711:
     b0 = _GS_Value(22)
     g0 = _GS_Value(24)
     r0 = _GS_Value(26)
-
 
     def __init__(self, spi, *, auto_show=True):  # noqa
         self._spi = spi
@@ -219,7 +218,7 @@ class TLC59711:
 
     def show(self):
         """Write out the current LED PWM state to the chip.  This is only necessary if
-           auto_show was set to false in the initializer.
+        auto_show was set to false in the initializer.
         """
         self._write()
 
@@ -279,7 +278,7 @@ class TLC59711:
         # pylint: disable=no-else-return
         # Disable should be removed when refactor can be tested
         """Retrieve the R, G, B values for the provided channel as a
-           3-tuple. Each value is a 16-bit number from 0-65535.
+        3-tuple. Each value is a 16-bit number from 0-65535.
         """
         if key == 0:
             return (self.r0, self.g0, self.b0)
@@ -294,7 +293,7 @@ class TLC59711:
 
     def __setitem__(self, key, val):
         """Set the R, G, B values for the provided channel.  Specify a
-           3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
+        3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
         """
         # Do this check here instead of later to
         # prevent accidentally keeping auto_show
