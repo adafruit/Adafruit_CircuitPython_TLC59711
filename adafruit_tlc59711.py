@@ -61,6 +61,21 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # refers to them as.
 # pylint: disable=invalid-name
 
+# Globally disable too many instance attributes check.  Again this is a case
+# where pylint doesn't have the right context to make this call.  The chip by
+# design has many channels which must be exposed.
+# pylint: disable=too-many-instance-attributes
+
+# Globally disable protected access.  Once again pylint can't figure out the
+# context for using internal decorate classes below.  In these cases protectected
+# access is by design for the internal class.
+# pylint: disable=protected-access
+
+# Yet another pylint issue, it fails to recognize a decorator class by
+# definition has no public methods.  Disable the check.
+# pylint: disable=too-few-public-methods
+
+
 import struct
 
 from micropython import const
@@ -293,7 +308,7 @@ class TLC59711Multi:
 
     ##########################################
 
-    def __init__(self, spi, pixel_count=4):
+    def __init__(self, spi, *, pixel_count=4):
         """Init."""
         self._spi = spi
         # how many pixels are there?
@@ -487,7 +502,7 @@ class TLC59711Multi:
             # Lock the SPI bus and configure it for the shift register.
             while not self._spi.try_lock():
                 pass
-            self._spi.configure(baudrate=10000000, polarity=0, phase=0)
+            self._spi.configure(baudrate=self._spi.frequency, polarity=0, phase=0)
             self._spi.write(self._buffer)
         finally:
             # Ensure the SPI bus is unlocked.
@@ -985,6 +1000,13 @@ class TLC59711(TLC59711Multi):
         - TLC5971: 20MHz
     :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
     """
+
+    # :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.  The clock and
+    #     MOSI/outout must be set, the MISO/input is unused.
+    # :param bool auto_show: This is a boolean that defaults to True and indicates any
+    #     change to a channel value will instantly be written to the chip. You might wish to
+    #     set this to false if you desire to perform your own atomic operations of channel
+    #     values. In that case call the show function after making updates to channel state.
 
     class _ChannelDirekt:
         # Internal decorator to simplify mapping.

@@ -19,7 +19,7 @@ leds = adafruit_tlc59711.TLC59711(spi)
 # as soon as any channel value is written.  The default is True/on but you can
 # disable and explicitly call show to control when updates happen for better
 # animation or atomic RGB LED updates.
-#leds = adafruit_tlc59711.TLC59711(spi, auto_show=False)
+# leds = adafruit_tlc59711.TLC59711(spi, auto_show=False)
 
 # There are a couple ways to control the channels of the chip.
 # The first is using an interface like a strip of NeoPixels.  Index into the
@@ -29,7 +29,7 @@ leds = adafruit_tlc59711.TLC59711(spi)
 # For example set channel 0 (R0, G0, B0) to half brightness:
 leds[0] = (32767, 32767, 32767)
 # Dont forget to call show if you disabled auto_show above.
-#leds.show()
+# leds.show()
 
 # Or to set channel 1 to full red only (green and blue off).
 leds[1] = (65535, 0, 0)
@@ -39,7 +39,7 @@ leds[1] = (65535, 0, 0)
 # For example set channel 2 to full green (i.e. G2 to maximum):
 leds.g2 = 65535
 # Again don't forget to call show if you disabled auto_show above.
-#leds.show()
+# leds.show()
 
 # The chip also supports global brightness channels to change the red, green,
 # blue colors of all 4 channels at once.  These are 7-bit values that range
@@ -49,4 +49,4 @@ leds.g2 = 65535
 # For example set the red channel to half brightness globally.
 leds.red_brightness = 63
 # Don't forget to call show if you disabled auto_show above.
-#leds.show()
+# leds.show()
