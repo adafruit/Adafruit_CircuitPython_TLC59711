@@ -54,11 +54,6 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 
 
-# Globally disable pylint things
-# invalid-name:  this chip by design has short channel and register names.
-# It is confusing to rename these from what the datasheet refers to them as.
-# pylint: disable=invalid-name
-
 import struct
 
 from micropython import const
@@ -975,7 +970,7 @@ class TLC59711(TLC59711Multi):
         def __set__(self, obj, value):
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= value <= 65535
-            obj._set_channel_16bit_value(self._channel, value)
+            obj.set_channel(self._channel, value)
             # if obj.auto_show:
             #     obj._write()
 

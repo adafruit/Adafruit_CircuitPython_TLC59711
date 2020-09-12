@@ -1,10 +1,9 @@
 """TLC5971 / TLC59711 Multi."""
 
 __doc__ = """
-TLC59711Multi development helper.
+tlc59711_multi_test_bcdata.py .
 
-this sketch contains a bunch of timing tests and other development helpers..
-Enjoy the colors :-)
+test brightness correction data (BC)
 """
 
 import time
@@ -14,7 +13,6 @@ import busio
 import supervisor
 
 import adafruit_tlc59711
-
 
 ##########################################
 PIXEL_COUNT = 16 * 8
@@ -102,9 +100,15 @@ def test_main():
 
     if supervisor.runtime.serial_connected:
         print(
-            "you can change the global brightness control:\n"
+            "\n"
+            "this script offers two things to be changed:\n"
+            "- value for all channels\n"
+            "example: 'v10'\n"
+            "example: 'v65535'\n"
+            "- (global) brightness control:\n"
             "use format: 'Ioclmax; IoutR; IoutG; IoutB'\n"
             "example: '18; 7; 15; 17'"
+            "\n"
         )
     while True:
         if supervisor.runtime.serial_bytes_available:

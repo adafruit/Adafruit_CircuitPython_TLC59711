@@ -3,7 +3,7 @@
 __doc__ = """
 tlc59711_fastset.py - TLC59711 fast set example.
 
-showcases the usage of set_pixel_16bit_value for fastests setting of values.
+showcases the usage of set_pixel_16bit_value for fastest setting of values.
 for speed comparision of all the available set calls
 look at the tlc59711_multi_dev.py file.
 

@@ -14,15 +14,12 @@ import busio
 
 import adafruit_tlc59711
 
+print("tlc59711_minimal.py")
+
 # Define SPI bus connected to chip.
 # You only need the clock and MOSI (output) line to use this chip.
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-
-# Define the TLC59711 instance.
 pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=16)
-
-
-print("tlc59711_minimal.py")
 
 # Ways to set the values:
 # just a list or tuple with 3 integer values: R G B
