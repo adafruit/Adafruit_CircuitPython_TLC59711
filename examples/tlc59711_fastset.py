@@ -5,7 +5,7 @@ tlc59711_fastset.py - TLC59711 fast set example.
 
 showcases the usage of set_pixel_16bit_value for fastest setting of values.
 for speed comparision of all the available set calls
-look at the tlc59711_multi_dev.py file.
+look at the tlc59711_dev.py file.
 
 Enjoy the colors :-)
 """
@@ -22,7 +22,7 @@ import adafruit_tlc59711
 PIXEL_COUNT = 16
 
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-pixels = adafruit_tlc59711.TLC59711Multi(spi, pixel_count=PIXEL_COUNT)
+pixels = adafruit_tlc59711.TLC59711(spi, pixel_count=PIXEL_COUNT)
 
 
 ##########################################
@@ -57,7 +57,7 @@ def test_main():
     print(__doc__, end="")
     print(42 * "*")
 
-    bcvalues = adafruit_tlc59711.TLC59711Multi.calculate_BCData(
+    bcvalues = adafruit_tlc59711.TLC59711.calculate_BCData(
         Ioclmax=18,
         IoutR=18,
         IoutG=11,
