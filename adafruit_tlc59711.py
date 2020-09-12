@@ -967,6 +967,7 @@ class TLC59711:
 
 ##########################################
 
+
 class TLC59711AutoShow(TLC59711):
     """TLC59711 16-bit 12 channel LED PWM driver with Auto-Show.
 

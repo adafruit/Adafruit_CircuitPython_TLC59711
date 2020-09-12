@@ -175,7 +175,13 @@ missing-member-max-choices=1
 
 # List of additional names supposed to be defined in builtins.
 # Remember that you should avoid to define new builtins when possible.
-additional-builtins=_CHIP_BUFFER_BYTE_COUNT, _BC_CHIP_BUFFER_BIT_OFFSET, _FC_CHIP_BUFFER_BIT_OFFSET, _WC_CHIP_BUFFER_BIT_OFFSET, _BUFFER_BYTES_PER_COLOR, _CHIP_BUFFER_HEADER_BYTE_COUNT
+additional-builtins=
+    _CHIP_BUFFER_BYTE_COUNT,
+    _BC_CHIP_BUFFER_BIT_OFFSET,
+    _FC_CHIP_BUFFER_BIT_OFFSET,
+    _WC_CHIP_BUFFER_BIT_OFFSET,
+    _BUFFER_BYTES_PER_COLOR,
+    _CHIP_BUFFER_HEADER_BYTE_COUNT
 # ugly workaround for pylint not knowing of micropython const thing:
 # this fixes the E0602: Undefined variable error.
 
@@ -223,7 +229,7 @@ indent-string='    '
 max-line-length=100
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=1100
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
@@ -308,7 +314,23 @@ function-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 # these variable names represent the datasheet nameing - so they are allowed!
 # good-names=Ioclmax, IoutR, IoutG, IoutB, BCValues,calculate_Ioclmax
 # combined:
-good-names=r,g,b,w,i,j,k,n,x,y,z,e,ex,ok,Run,_,Riref,Viref,Ioclmax,IoutR,IoutG,IoutB,BCValues,calculate_Ioclmax,calculate_Riref,calculate_BCData,chip_set_BCData,update_BCData,_chip_set_FunctionControl,_chip_set_WriteCommand,b0,g0,r0,b1,g1,r1,b2,g2,r2,b3,g3,r3
+good-names=
+    r,g,b,w,i,j,k,n,x,y,z,e,ex,ok,Run,_,
+    Riref,
+    Viref,
+    Ioclmax,
+    IoutR,
+    IoutG,
+    IoutB,
+    BCValues,
+    calculate_Ioclmax,
+    calculate_Riref,
+    calculate_BCData,
+    chip_set_BCData,
+    update_BCData,
+    _chip_set_FunctionControl,
+    _chip_set_WriteCommand,
+    b0,g0,r0,b1,g1,r1,b2,g2,r2,b3,g3,r3
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=no
