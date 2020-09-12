@@ -954,7 +954,7 @@ class TLC59711AutoShow(TLC59711):
 
     def __init__(self, spi, pixel_count=4):
         """Init."""
-        super(TLC59711AutoShow, self).__init__(spi, pixel_count=pixel_count)
+        super().__init__(spi, pixel_count=pixel_count)
 
     ##########################################
 
@@ -970,7 +970,7 @@ class TLC59711AutoShow(TLC59711):
         :param tuple value: 3-tuple of R, G, B;
             each int 0..65535 or float 0..1
         """
-        super(TLC59711AutoShow, self).set_pixel(pixel_index, value)
+        super().set_pixel(pixel_index, value)
         self._write()
 
     def set_pixel_all(self, color):
@@ -979,12 +979,12 @@ class TLC59711AutoShow(TLC59711):
 
         :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
-        super(TLC59711AutoShow, self).set_pixel_all(color)
+        super().set_pixel_all(color)
         self._write()
 
     def set_all_black(self):
         """Set all pixels to black."""
-        super(TLC59711AutoShow, self).set_all_black()
+        super().set_all_black()
         self._write()
 
     # channel access
@@ -995,7 +995,7 @@ class TLC59711AutoShow(TLC59711):
         :param int channel_index: 0..channel_count
         :param int value: 0..65535
         """
-        super(TLC59711AutoShow, self).set_channel(channel_index, value)
+        super().set_channel(channel_index, value)
         self._write()
 
     def __setitem__(self, key, value):
@@ -1010,7 +1010,7 @@ class TLC59711AutoShow(TLC59711):
         :param int key: 0..(pixel_count)
         :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
-        super(TLC59711AutoShow, self).__setitem__(key, value)
+        super().__setitem__(key, value)
         self._write()
 
     class _ChannelDirektAutoShow:
