@@ -966,3 +966,116 @@ class TLC59711:
 
 
 ##########################################
+
+class TLC59711AutoShow(TLC59711):
+    """TLC59711 16-bit 12 channel LED PWM driver with Auto-Show.
+
+    This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
+    The class has an interface compatible with the FancyLED library.
+    and with this is similar to the NeoPixel and DotStar Interfaces.
+
+    this TLC59711AutoShow is a subclass of TLC59711 that adds automatically
+    sending changed data to the chips.
+    this creates very slows responses on big changes.
+    It is mainly usefull if you only have a very small number of pixels.
+
+    :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
+        The clock and MOSI/outout must be set, the MISO/input is unused.
+        Maximal data clock frequence is:
+        - TLC59711: 10MHz
+        - TLC5971: 20MHz
+    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
+    """
+
+    def __init__(self, spi, pixel_count=4):
+        """Init."""
+        super(TLC59711AutoShow, self).__init__(spi, pixel_count=pixel_count)
+
+    ##########################################
+
+    def set_pixel(self, pixel_index, value):
+        """
+        Set the R, G, B values for the pixel.
+
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+
+        :param int pixel_index: 0..(pixel_count)
+        :param tuple value: 3-tuple of R, G, B;
+            each int 0..65535 or float 0..1
+        """
+        super(TLC59711AutoShow, self).set_pixel(pixel_index, value)
+        self._write()
+
+    def set_pixel_all(self, color):
+        """
+        Set the R, G, B values for all pixels.
+
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        """
+        super(TLC59711AutoShow, self).set_pixel_all(color)
+        self._write()
+
+    def set_all_black(self):
+        """Set all pixels to black."""
+        super(TLC59711AutoShow, self).set_all_black()
+        self._write()
+
+    # channel access
+    def set_channel(self, channel_index, value):
+        """
+        Set the value for the provided channel.
+
+        :param int channel_index: 0..channel_count
+        :param int value: 0..65535
+        """
+        super(TLC59711AutoShow, self).set_channel(channel_index, value)
+        self._write()
+
+    def __setitem__(self, key, value):
+        """
+        Set the R, G, B values for the pixel.
+
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+        this shortcut is identicall to `set_pixel`
+
+        :param int key: 0..(pixel_count)
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        """
+        super(TLC59711AutoShow, self).__setitem__(key, value)
+        self._write()
+
+    class _ChannelDirektAutoShow:
+        # Internal decorator to simplify mapping.
+
+        def __init__(self, channel):
+            self._channel = channel
+
+        def __get__(self, obj, obj_type):
+            # Grab the 16-bit value at the offset for this channel.
+            return obj._get_channel_16bit_value(self._channel)
+
+        def __set__(self, obj, value):
+            # Set the 16-bit value at the offset for this channel.
+            assert 0 <= value <= 65535
+            obj.set_channel(self._channel, value)
+            obj._write()
+
+    # Define explicit channels for first IC.
+    # → this is only for api backwards compliance.
+    # not recommended for new use - use *set_channel*
+    b0 = _ChannelDirektAutoShow(0)
+    g0 = _ChannelDirektAutoShow(1)
+    r0 = _ChannelDirektAutoShow(2)
+    b1 = _ChannelDirektAutoShow(3)
+    g1 = _ChannelDirektAutoShow(4)
+    r1 = _ChannelDirektAutoShow(5)
+    b2 = _ChannelDirektAutoShow(6)
+    g2 = _ChannelDirektAutoShow(7)
+    r2 = _ChannelDirektAutoShow(8)
+    b3 = _ChannelDirektAutoShow(9)
+    g3 = _ChannelDirektAutoShow(10)
+    r3 = _ChannelDirektAutoShow(11)
