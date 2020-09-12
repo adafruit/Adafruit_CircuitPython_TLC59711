@@ -1,7 +1,7 @@
 """TLC5971 / TLC59711 Multi."""
 
 __doc__ = """
-tlc59711_multi_test_bcdata.py .
+tlc59711_test_bcdata.py.
 
 test brightness correction data (BC)
 """

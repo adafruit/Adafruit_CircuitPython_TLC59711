@@ -59,19 +59,20 @@ import struct
 from micropython import const
 
 
-class TLC59711Multi:
-    """Multi TLC59711 16-bit 12 channel LED PWM driver.
+class TLC59711:
+    """TLC5971 & TLC59711 16-bit 12 channel LED PWM driver.
 
-    This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
-    The class has an interface compatible with the FancyLED library.
-    and with this is similar to the NeoPixel and DotStar Interfaces.
+    The TLC59711 & TLC5971 chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
+    This Library can control 1..many chips.
+    The class has an interface compatible with the FancyLED library -
+    and the API is similar to the NeoPixel and DotStar Interfaces.
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
         The clock and MOSI/outout must be set, the MISO/input is unused.
         Maximal data clock frequence is:
         - TLC59711: 10MHz
         - TLC5971: 20MHz
-    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
+    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected. (default=4)
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -930,33 +931,6 @@ class TLC59711Multi:
                 "index {} out of range [0..{}]" "".format(key, self.pixel_count)
             )
 
-
-##########################################
-
-
-class TLC59711(TLC59711Multi):
-    """Multi TLC59711 16-bit 12 channel LED PWM driver.
-
-    This chip is designed to drive 4 RGB LEDs with 16-bit PWM per Color.
-    The class has an interface compatible with the FancyLED library.
-    and with this is similar to the NeoPixel and DotStar Interfaces.
-
-    this TLC59711 is a subclass of TLC59711Multi just for compatiblility.
-    here maybee some of the original API will get implemented
-
-    :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
-        The clock and MOSI/outout must be set, the MISO/input is unused.
-        Maximal data clock frequence is:
-        - TLC59711: 10MHz
-        - TLC5971: 20MHz
-    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
-    """
-
-    # :param bool auto_show: This is a boolean that defaults to True and indicates any
-    #     change to a channel value will instantly be written to the chip. You might wish to
-    #     set this to false if you desire to perform your own atomic operations of channel
-    #     values. In that case call the show function after making updates to channel state.
-
     class _ChannelDirekt:
         # Internal decorator to simplify mapping.
 
@@ -974,7 +948,9 @@ class TLC59711(TLC59711Multi):
             # if obj.auto_show:
             #     obj._write()
 
-    # Define explicit channels for first IC. → this is only for api backwards compliance.
+    # Define explicit channels for first IC.
+    # → this is only for api backwards compliance.
+    # not recommended for new use - use *set_channel*
     b0 = _ChannelDirekt(0)
     g0 = _ChannelDirekt(1)
     r0 = _ChannelDirekt(2)
@@ -988,6 +964,5 @@ class TLC59711(TLC59711Multi):
     g3 = _ChannelDirekt(10)
     r3 = _ChannelDirekt(11)
 
-    def __init__(self, spi, pixel_count=4):
-        """Init."""
-        super(TLC59711, self).__init__(spi, pixel_count=pixel_count)
+
+##########################################
