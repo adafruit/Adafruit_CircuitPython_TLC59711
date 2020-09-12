@@ -43,10 +43,7 @@ def main_loop():
         except ValueError as e:
             print("Exception: ", e)
         BCValues = adafruit_tlc59711.TLC59711.calculate_BCData(
-            Ioclmax=Ioclmax,
-            IoutR=IoutR,
-            IoutG=IoutG,
-            IoutB=IoutB,
+            Ioclmax=Ioclmax, IoutR=IoutR, IoutG=IoutG, IoutB=IoutB,
         )
         pixels.bcr = BCValues[0]
         pixels.bcg = BCValues[1]
@@ -55,11 +52,7 @@ def main_loop():
             "bcr: {:>3}\n"
             "bcg: {:>3}\n"
             "bcb: {:>3}\n"
-            "".format(
-                pixels.bcr,
-                pixels.bcg,
-                pixels.bcb,
-            )
+            "".format(pixels.bcr, pixels.bcg, pixels.bcb,)
         )
         pixels.update_BCData()
     pixels.show()
@@ -84,10 +77,7 @@ def test_main():
     Riref = adafruit_tlc59711.TLC59711.calculate_Riref(Ioclmax=Ioclmax)
     print("Riref = {}".format(Riref))
     BCValues = adafruit_tlc59711.TLC59711.calculate_BCData(
-        Ioclmax=Ioclmax,
-        IoutR=18,
-        IoutG=11,
-        IoutB=13,
+        Ioclmax=Ioclmax, IoutR=18, IoutG=11, IoutB=13,
     )
     # (127, 77, 91)
     print("BCValues = {}".format(BCValues))

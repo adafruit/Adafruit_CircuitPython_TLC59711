@@ -58,10 +58,7 @@ def test_main():
     print(42 * "*")
 
     bcvalues = adafruit_tlc59711.TLC59711.calculate_BCData(
-        Ioclmax=18,
-        IoutR=18,
-        IoutG=11,
-        IoutB=13,
+        Ioclmax=18, IoutR=18, IoutG=11, IoutB=13,
     )
     print("bcvalues = {}".format(bcvalues))
     pixels.bcr = bcvalues[0]
