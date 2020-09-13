@@ -25,7 +25,7 @@ install:
 - pip install pylint circuitpython-build-tools Sphinx sphinx-rtd-theme
 - pip install --force-reinstall pylint==1.9.2
 script:
-- pylint adafruit_tlc59711/*.py
+- pylint adafruit_tlc59711.py
 - ([[ ! -d "examples" ]] || pylint --disable=missing-docstring,invalid-name,bad-whitespace
   examples/*.py)
 - circuitpython-build-bundles --filename_prefix adafruit-circuitpython-tlc59711 --library_location
