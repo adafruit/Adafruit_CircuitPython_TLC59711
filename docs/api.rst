@@ -3,6 +3,3 @@
 
 .. automodule:: adafruit_tlc59711.adafruit_tlc59711
    :members:
-
-.. automodule:: adafruit_tlc59711.adafruit_tlc59711_multi
-   :members:
