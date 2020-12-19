@@ -45,13 +45,25 @@ Implementation Notes
 
 * The API is mostly compatible to the DotStar / NeoPixel Libraries
     and is therefore also compatible with FancyLED.
-    for this see examples/fancy_multi.py
 
 * Adafruit CircuitPython firmware for the ESP8622, M0 or M4-based boards:
   https://github.com/adafruit/circuitpython/releases
 """
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
+
+
+# pylint - globally disable
+# 'invalid-name' check to allow for datasheet conform short channel and register names.
+# pylint: disable=invalid-name
+# 'undefined-variable' to allow for micropython const definitions
+# pylint: disable=undefined-variable
+# 'too-many-lines' with the extra class and the api backwards compatibel things i have ~1100 lines..
+# and as it was wished to not alter the .pylint file to limit to 1100 i disable it here..
+# and yes - this code is very detailed commented. but i think that this is a good thing -
+# as hopefully this way it is easier to understand desicions &
+# what is going on and learn the backgrounds..
+# pylint: disable=too-many-lines
 
 
 import struct
@@ -190,9 +202,21 @@ class TLC59711:
     _BC_BIT_COUNT = const(3 * 7)
     # this holds the chip offset and
     _BC_FIELDS = {
-        "BCR": {"offset": 0, "length": 7, "mask": 0b01111111,},
-        "BCG": {"offset": 7, "length": 7, "mask": 0b01111111,},
-        "BCB": {"offset": 14, "length": 7, "mask": 0b01111111,},
+        "BCR": {
+            "offset": 0,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCG": {
+            "offset": 7,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCB": {
+            "offset": 14,
+            "length": 7,
+            "mask": 0b01111111,
+        },
     }
 
     ##########################################
@@ -225,11 +249,31 @@ class TLC59711:
     _FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
     _FC_BIT_COUNT = const(5)
     _FC_FIELDS = {
-        "BLANK": {"offset": 0, "length": 1, "mask": 0b1,},
-        "DSPRPT": {"offset": 1, "length": 1, "mask": 0b1,},
-        "TMGRST": {"offset": 2, "length": 1, "mask": 0b1,},
-        "EXTGCK": {"offset": 3, "length": 1, "mask": 0b1,},
-        "OUTTMG": {"offset": 4, "length": 1, "mask": 0b1,},
+        "BLANK": {
+            "offset": 0,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "DSPRPT": {
+            "offset": 1,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "TMGRST": {
+            "offset": 2,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "EXTGCK": {
+            "offset": 3,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "OUTTMG": {
+            "offset": 4,
+            "length": 1,
+            "mask": 0b1,
+        },
     }
 
     ##########################################
@@ -239,7 +283,11 @@ class TLC59711:
     _WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
     _WC_BIT_COUNT = const(6)
     _WC_FIELDS = {
-        "WRITE_COMMAND": {"offset": 0, "length": 6, "mask": 0b111111,},
+        "WRITE_COMMAND": {
+            "offset": 0,
+            "length": 6,
+            "mask": 0b111111,
+        },
     }
     WRITE_COMMAND = const(0b100101)
     ##########################################
