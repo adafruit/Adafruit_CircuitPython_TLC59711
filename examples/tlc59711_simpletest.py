@@ -21,10 +21,18 @@ print("tlc59711_minimal.py")
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 pixels = adafruit_tlc59711.TLC59711(spi, pixel_count=16)
 
-# Ways to set the values:
-# just a list or tuple with 3 integer values: R G B
-# each 0 - 65535 or 0.0 - 1.0
-# every chip has 4 RGB-LEDs (=12 Channel)
+# examples how to set the pixels:
+# range:
+# 0 - 65535
+# or
+# 0.0 - 1.0
+# every pixel needs a color -
+# give it just a list or tuple with 3 integer values: R G B
+
+# set all pixels to a very low level
+pixels.set_pixel_all((10, 10, 10))
+
+# every chip has 4 Pixels (=RGB-LEDs = 12 Channel)
 pixels[0] = (100, 100, 100)
 pixels[1] = (0, 0, 100)
 pixels[2] = (0.01, 0.0, 0.01)
@@ -32,5 +40,5 @@ pixels[3] = (0.1, 0.01, 0.0)
 # if you are ready to show your values you have to call
 pixels.show()
 
-# there are a bunch of other advanced ways to set pixel.
+# there are a bunch of other ways to set pixel.
 # have a look at the other examples.
