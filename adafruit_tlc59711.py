@@ -202,21 +202,9 @@ class TLC59711:
     _BC_BIT_COUNT = const(3 * 7)
     # this holds the chip offset and
     _BC_FIELDS = {
-        "BCR": {
-            "offset": 0,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCG": {
-            "offset": 7,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCB": {
-            "offset": 14,
-            "length": 7,
-            "mask": 0b01111111,
-        },
+        "BCR": {"offset": 0, "length": 7, "mask": 0b01111111,},
+        "BCG": {"offset": 7, "length": 7, "mask": 0b01111111,},
+        "BCB": {"offset": 14, "length": 7, "mask": 0b01111111,},
     }
 
     ##########################################
@@ -249,31 +237,11 @@ class TLC59711:
     _FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
     _FC_BIT_COUNT = const(5)
     _FC_FIELDS = {
-        "BLANK": {
-            "offset": 0,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "DSPRPT": {
-            "offset": 1,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "TMGRST": {
-            "offset": 2,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "EXTGCK": {
-            "offset": 3,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "OUTTMG": {
-            "offset": 4,
-            "length": 1,
-            "mask": 0b1,
-        },
+        "BLANK": {"offset": 0, "length": 1, "mask": 0b1,},
+        "DSPRPT": {"offset": 1, "length": 1, "mask": 0b1,},
+        "TMGRST": {"offset": 2, "length": 1, "mask": 0b1,},
+        "EXTGCK": {"offset": 3, "length": 1, "mask": 0b1,},
+        "OUTTMG": {"offset": 4, "length": 1, "mask": 0b1,},
     }
 
     ##########################################
@@ -283,11 +251,7 @@ class TLC59711:
     _WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
     _WC_BIT_COUNT = const(6)
     _WC_FIELDS = {
-        "WRITE_COMMAND": {
-            "offset": 0,
-            "length": 6,
-            "mask": 0b111111,
-        },
+        "WRITE_COMMAND": {"offset": 0, "length": 6, "mask": 0b111111,},
     }
     WRITE_COMMAND = const(0b100101)
     ##########################################
