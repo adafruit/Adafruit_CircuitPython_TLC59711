@@ -38,10 +38,7 @@ spi = busio.SPI(board.SCK, MOSI=board.MOSI)
 print(42 * "*")
 print("init TLC5957")
 NUM_LEDS = 16
-pixels = adafruit_tlc59711.TLC59711(
-    spi=spi,
-    pixel_count=NUM_LEDS,
-)
+pixels = adafruit_tlc59711.TLC59711(spi=spi, pixel_count=NUM_LEDS,)
 
 print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
