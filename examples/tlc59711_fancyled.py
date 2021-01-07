@@ -15,8 +15,8 @@ import board
 
 import busio
 
-import adafruit_tlc59711
 import adafruit_fancyled.adafruit_fancyled as fancyled
+import adafruit_tlc59711
 
 ##########################################
 print("\n" + (42 * "*") + "\n" + __doc__ + "\n" + (42 * "*") + "\n" + "\n")
