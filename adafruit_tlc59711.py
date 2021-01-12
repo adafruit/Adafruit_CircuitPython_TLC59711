@@ -1,24 +1,7 @@
-# The MIT License (MIT)
+# SPDX-FileCopyrightText: 2017 Tony DiCola for Adafruit Industries
 #
-# Copyright (c) 2017 Tony DiCola for Adafruit Industries
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# SPDX-License-Identifier: MIT
+
 """
 `adafruit_tlc59711`
 ====================================================
@@ -213,7 +196,7 @@ class TLC59711:
 
     def show(self):
         """Write out the current LED PWM state to the chip.  This is only necessary if
-           auto_show was set to false in the initializer.
+        auto_show was set to false in the initializer.
         """
         self._write()
 
@@ -221,7 +204,7 @@ class TLC59711:
     @property
     def red_brightness(self):
         """The red brightness for all channels (i.e. R0, R1, R2, and R3).  This is a 7-bit
-           value from 0-127.
+        value from 0-127.
         """
         return self._bcr
 
@@ -235,7 +218,7 @@ class TLC59711:
     @property
     def green_brightness(self):
         """The green brightness for all channels (i.e. G0, G1, G2, and G3).  This is a
-           7-bit value from 0-127.
+        7-bit value from 0-127.
         """
         return self._bcg
 
@@ -249,7 +232,7 @@ class TLC59711:
     @property
     def blue_brightness(self):
         """The blue brightness for all channels (i.e. B0, B1, B2, and B3).  This is a 7-bit
-           value from 0-127.
+        value from 0-127.
         """
         return self._bcb
 
@@ -270,7 +253,7 @@ class TLC59711:
         # pylint: disable=no-else-return
         # Disable should be removed when refactor can be tested
         """Retrieve the R, G, B values for the provided channel as a
-           3-tuple. Each value is a 16-bit number from 0-65535.
+        3-tuple. Each value is a 16-bit number from 0-65535.
         """
         if key == 0:
             return (self.r0, self.g0, self.b0)
@@ -285,7 +268,7 @@ class TLC59711:
 
     def __setitem__(self, key, val):
         """Set the R, G, B values for the provided channel.  Specify a
-           3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
+        3-tuple of R, G, B values that are each 16-bit numbers (0-65535).
         """
         assert 0 <= key <= 3  # Do this check here instead of later to
         # prevent accidentally keeping auto_show
