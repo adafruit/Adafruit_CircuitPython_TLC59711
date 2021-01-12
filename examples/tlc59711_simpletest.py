@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
 # Simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
 # Shows setting channel values in a few ways.
 # Author: Tony DiCola
