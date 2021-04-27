@@ -5,7 +5,6 @@
 
 """
 `adafruit_tlc59711`
-
 ====================================================
 
 CircuitPython module for the
