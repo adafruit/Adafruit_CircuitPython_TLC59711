@@ -1,20 +1,16 @@
-"""TLC5971 / TLC59711."""
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
 
-__doc__ = """
-tlc59711_minimal.py - TLC59711 minimal usage example.
-
-simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
-Shows the minimal usage - how to set pixel values.
-
-Enjoy the colors :-)
-"""
+# simple demo of the TLC59711 16-bit 12 channel LED PWM driver.
+# Shows the minimal usage - how to set pixel values in a few ways.
+# Author: Tony DiCola
 
 import board
 import busio
 
 import adafruit_tlc59711
 
-print("tlc59711_minimal.py")
+print("tlc59711_simpletest.py")
 
 # Define SPI bus connected to chip.
 # You only need the clock and MOSI (output) line to use this chip.
