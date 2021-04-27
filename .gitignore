@@ -4,12 +4,15 @@
 
 *.mpy
 .idea
+*.idea.py
 __pycache__
 _build
 *.pyc
 .env
+build*
 bundles
 *.DS_Store
 .eggs
 dist
 **/*.egg-info
+temp/
