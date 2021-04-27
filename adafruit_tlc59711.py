@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2017 Tony DiCola for Adafruit Industries
+# SPDX-FileCopyrightText: 2018 Stefan Krüger s-light.eu
 #
 # SPDX-License-Identifier: MIT
 
@@ -9,7 +10,7 @@
 
 CircuitPython module for the
 TLC59711 or TLC5971 16-bit 12 channel LED PWM driver.
-See examples/simpletest_multi.py for a demo of the usage.
+See examples/tlc59711_simpletest.py for a demo of the usage.
 
 * Author(s): Tony DiCola, Stefan Kruger
 
@@ -183,9 +184,21 @@ class TLC59711:
     _BC_BIT_COUNT = const(3 * 7)
     # this holds the chip offset and
     _BC_FIELDS = {
-        "BCR": {"offset": 0, "length": 7, "mask": 0b01111111,},
-        "BCG": {"offset": 7, "length": 7, "mask": 0b01111111,},
-        "BCB": {"offset": 14, "length": 7, "mask": 0b01111111,},
+        "BCR": {
+            "offset": 0,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCG": {
+            "offset": 7,
+            "length": 7,
+            "mask": 0b01111111,
+        },
+        "BCB": {
+            "offset": 14,
+            "length": 7,
+            "mask": 0b01111111,
+        },
     }
 
     ##########################################
@@ -218,11 +231,31 @@ class TLC59711:
     _FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
     _FC_BIT_COUNT = const(5)
     _FC_FIELDS = {
-        "BLANK": {"offset": 0, "length": 1, "mask": 0b1,},
-        "DSPRPT": {"offset": 1, "length": 1, "mask": 0b1,},
-        "TMGRST": {"offset": 2, "length": 1, "mask": 0b1,},
-        "EXTGCK": {"offset": 3, "length": 1, "mask": 0b1,},
-        "OUTTMG": {"offset": 4, "length": 1, "mask": 0b1,},
+        "BLANK": {
+            "offset": 0,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "DSPRPT": {
+            "offset": 1,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "TMGRST": {
+            "offset": 2,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "EXTGCK": {
+            "offset": 3,
+            "length": 1,
+            "mask": 0b1,
+        },
+        "OUTTMG": {
+            "offset": 4,
+            "length": 1,
+            "mask": 0b1,
+        },
     }
 
     ##########################################
@@ -232,7 +265,11 @@ class TLC59711:
     _WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
     _WC_BIT_COUNT = const(6)
     _WC_FIELDS = {
-        "WRITE_COMMAND": {"offset": 0, "length": 6, "mask": 0b111111,},
+        "WRITE_COMMAND": {
+            "offset": 0,
+            "length": 6,
+            "mask": 0b111111,
+        },
     }
     WRITE_COMMAND = const(0b100101)
     ##########################################
@@ -433,7 +470,6 @@ class TLC59711:
             self._spi.unlock()
 
     def show(self):
-
         """Write out the current LED PWM state to the chip."""
         self._write()
 
@@ -839,57 +875,12 @@ class TLC59711:
             )
 
     # Define index and length properties to set and get each pixel as
-=======
-        """Write out the current LED PWM state to the chip.  This is only necessary if
-        auto_show was set to false in the initializer.
-        """
-        self._write()
+    # atomic RGB tuples.  This provides a similar feel as using neopixels.
+    def __len__(self):
+        """Retrieve TLC5975 the total number of Pixels available."""
+        return self.pixel_count
 
-    # Define properties for global brightness control channels.
-    @property
-    def red_brightness(self):
-        """The red brightness for all channels (i.e. R0, R1, R2, and R3).  This is a 7-bit
-        value from 0-127.
-        """
-        return self._bcr
-
-    @red_brightness.setter
-    def red_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcr = val
-        if self.auto_show:
-            self._write()
-
-    @property
-    def green_brightness(self):
-        """The green brightness for all channels (i.e. G0, G1, G2, and G3).  This is a
-        7-bit value from 0-127.
-        """
-        return self._bcg
-
-    @green_brightness.setter
-    def green_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcg = val
-        if self.auto_show:
-            self._write()
-
-    @property
-    def blue_brightness(self):
-        """The blue brightness for all channels (i.e. B0, B1, B2, and B3).  This is a 7-bit
-        value from 0-127.
-        """
-        return self._bcb
-
-    @blue_brightness.setter
-    def blue_brightness(self, val):
-        assert 0 <= val <= 127
-        self._bcb = val
-        if self.auto_show:
-            self._write()
-
-    # Define index and length properties to set and get each channel as
-
+    def __getitem__(self, key):
         """
         Retrieve the R, G, B values for the provided channel as a 3-tuple.
 

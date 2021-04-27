@@ -1,4 +1,12 @@
-"""TLC5971 / TLC59711."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
+# SPDX-FileCopyrightText: 2021 s-light
+# SPDX-License-Identifier: MIT
+# Author Stefan Krüger (s-light)
+
+"""TLC5971 / TLC59711 Example."""
 
 __doc__ = """
 tlc59711_singlechip_autoshow.py - TLC59711AutoShow minimal usage example.

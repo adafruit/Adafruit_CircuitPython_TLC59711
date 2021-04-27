@@ -1,4 +1,12 @@
-"""TLC5971 / TLC59711 Multi."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
+# SPDX-FileCopyrightText: 2021 s-light
+# SPDX-License-Identifier: MIT
+# Author Stefan Krüger (s-light)
+
+"""TLC5971 / TLC59711 Multi Development."""
 
 __doc__ = """
 TLC59711 development helper.
@@ -101,7 +109,10 @@ def timeit_call(message, test_function, loop_count=1000):
     # "{:>8.2f}ms".format(3.56)
     print(
         "{call_duration:>10.4f}ms\t{message}"
-        "".format(call_duration=(duration / loop_count) * 1000, message=message,)
+        "".format(
+            call_duration=(duration / loop_count) * 1000,
+            message=message,
+        )
     )
 
 
@@ -408,7 +419,11 @@ def test_bcdata():
         "bcr: {:>3}\n"
         "bcg: {:>3}\n"
         "bcb: {:>3}\n"
-        "".format(pixels.bcr, pixels.bcg, pixels.bcb,)
+        "".format(
+            pixels.bcr,
+            pixels.bcg,
+            pixels.bcb,
+        )
     )
     # calculate bc values
     Ioclmax = adafruit_tlc59711.TLC59711.calculate_Ioclmax(Riref=2.7)
@@ -416,7 +431,10 @@ def test_bcdata():
     Riref = adafruit_tlc59711.TLC59711.calculate_Riref(Ioclmax=Ioclmax)
     print("Riref = {}".format(Riref))
     BCValues = adafruit_tlc59711.TLC59711.calculate_BCData(
-        Ioclmax=Ioclmax, IoutR=18, IoutG=11, IoutB=13,
+        Ioclmax=Ioclmax,
+        IoutR=18,
+        IoutG=11,
+        IoutB=13,
     )
     # (127, 77, 91)
     print("BCValues = {}".format(BCValues))
@@ -431,7 +449,11 @@ def test_bcdata():
         "bcr: {:>3}\n"
         "bcg: {:>3}\n"
         "bcb: {:>3}\n"
-        "".format(pixels.bcr, pixels.bcg, pixels.bcb,)
+        "".format(
+            pixels.bcr,
+            pixels.bcg,
+            pixels.bcb,
+        )
     )
     time.sleep(2)
 

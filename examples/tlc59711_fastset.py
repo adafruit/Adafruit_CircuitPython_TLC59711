@@ -1,4 +1,12 @@
-"""TLC5971 / TLC59711."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
+# SPDX-FileCopyrightText: 2021 s-light
+# SPDX-License-Identifier: MIT
+# Author Stefan Krüger (s-light)
+
+"""TLC5971 / TLC59711 Example."""
 
 __doc__ = """
 tlc59711_fastset.py - TLC59711 fast set example.
@@ -9,6 +17,7 @@ look at the tlc59711_dev.py file.
 
 Enjoy the colors :-)
 """
+
 
 import time
 
@@ -58,7 +67,10 @@ def test_main():
     print(42 * "*")
 
     bcvalues = adafruit_tlc59711.TLC59711.calculate_BCData(
-        Ioclmax=18, IoutR=18, IoutG=11, IoutB=13,
+        Ioclmax=18,
+        IoutR=18,
+        IoutG=11,
+        IoutB=13,
     )
     print("bcvalues = {}".format(bcvalues))
     pixels.bcr = bcvalues[0]
