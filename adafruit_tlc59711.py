@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 """
-`adafruit_tlc59711`.
+`adafruit_tlc59711`
 
 ====================================================
 
@@ -28,8 +28,8 @@ Implementation Notes
 * The API is mostly compatible to the DotStar / NeoPixel Libraries
     and is therefore also compatible with FancyLED.
 
-* Adafruit CircuitPython firmware for the ESP8622, M0 or M4-based boards:
-  https://github.com/adafruit/circuitpython/releases
+* Adafruit CircuitPython firmware for the supported boards:
+  https://circuitpython.org/downloads
 """
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"

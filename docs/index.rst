@@ -23,6 +23,8 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
+    Adafruit 12-Channel 16-bit PWM LED Driver - SPI Interface - TLC59711 Learning Guide <https://learn.adafruit.com/tlc5947-tlc59711-pwm-led-driver-breakout/downloads-and-links>
+
 .. toctree::
     :caption: Related Products
 
