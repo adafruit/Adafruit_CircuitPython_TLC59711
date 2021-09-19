@@ -37,8 +37,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 # pylint - globally disable
 # 'invalid-name' check to allow for datasheet conform short channel and register names.
 # pylint: disable=invalid-name
-# 'undefined-variable' to allow for micropython const definitions
-# pylint: disable=undefined-variable
 # 'too-many-lines' with the extra class and the api backwards compatibel things i have ~1100 lines..
 # and as it was wished to not alter the .pylint file to limit to 1100 i disable it here..
 # and yes - this code is very detailed commented. but i think that this is a good thing -
@@ -50,6 +48,121 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 import struct
 
 from micropython import const
+
+
+_CHIP_BUFFER_BYTE_COUNT = const(28)
+
+COLORS_PER_PIXEL = const(3)
+PIXEL_PER_CHIP = const(4)
+CHANNEL_PER_CHIP = const(COLORS_PER_PIXEL * PIXEL_PER_CHIP)
+
+_BUFFER_BYTES_PER_COLOR = const(2)
+_BUFFER_BYTES_PER_PIXEL = const(_BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL)
+
+##########################################
+# class _BC():
+# BC-Data (3 x 7Bits = 21Bit).
+#
+# BCB 7bit;
+# BCG 7bit;
+# BCR 7bit;
+_BC_CHIP_BUFFER_BIT_OFFSET = const(0)
+_BC_BIT_COUNT = const(3 * 7)
+# this holds the chip offset and
+_BC_FIELDS = {
+    "BCR": {
+        "offset": 0,
+        "length": 7,
+        "mask": 0b01111111,
+    },
+    "BCG": {
+        "offset": 7,
+        "length": 7,
+        "mask": 0b01111111,
+    },
+    "BCB": {
+        "offset": 14,
+        "length": 7,
+        "mask": 0b01111111,
+    },
+}
+
+##########################################
+# class _FC():
+# """
+# Function Control Data (5 x 1Bit = 5Bit).
+#
+# OUTTMG 1bit
+#     GS clock edge select
+#     1 = rising edge
+#     0 = falling edge
+# EXTGCK 1bit
+#     GS reference clock select
+#     1 = SCKI clock
+#     0 = internal oscillator
+# TMGRST 1bit
+#     display timing reset mode
+#     1 = OUT forced of on latchpulse
+#     0 = no forced reset
+# DSPRPT 1bit
+#     display repeat mode
+#     1 = auto repeate
+#     0 = Out only turned on after Blank or internal latchpulse
+# BLANK 1bit;
+#     ic power on sets this to 1
+#     1 = blank (outputs off)
+#     0 = Out on - controlled by GS-Data
+# """
+
+_FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
+_FC_BIT_COUNT = const(5)
+_FC_FIELDS = {
+    "BLANK": {
+        "offset": 0,
+        "length": 1,
+        "mask": 0b1,
+    },
+    "DSPRPT": {
+        "offset": 1,
+        "length": 1,
+        "mask": 0b1,
+    },
+    "TMGRST": {
+        "offset": 2,
+        "length": 1,
+        "mask": 0b1,
+    },
+    "EXTGCK": {
+        "offset": 3,
+        "length": 1,
+        "mask": 0b1,
+    },
+    "OUTTMG": {
+        "offset": 4,
+        "length": 1,
+        "mask": 0b1,
+    },
+}
+
+##########################################
+# class _WRITE_COMMAND():
+# """WRITE_COMMAND."""
+
+_WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
+_WC_BIT_COUNT = const(6)
+_WC_FIELDS = {
+    "WRITE_COMMAND": {
+        "offset": 0,
+        "length": 6,
+        "mask": 0b111111,
+    },
+}
+WRITE_COMMAND = const(0b100101)
+##########################################
+
+########
+_CHIP_BUFFER_HEADER_BIT_COUNT = const(_WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT)
+_CHIP_BUFFER_HEADER_BYTE_COUNT = const(_CHIP_BUFFER_HEADER_BIT_COUNT // 8)
 
 
 class TLC59711:
@@ -132,18 +245,6 @@ class TLC59711:
     ##########################################
     # helper
     ##########################################
-
-    # pylama:ignore=E0602
-    # ugly workaround for pylama not knowing of micropython const thing
-    _CHIP_BUFFER_BYTE_COUNT = const(28)
-
-    COLORS_PER_PIXEL = const(3)
-    PIXEL_PER_CHIP = const(4)
-    CHANNEL_PER_CHIP = const(COLORS_PER_PIXEL * PIXEL_PER_CHIP)
-
-    _BUFFER_BYTES_PER_COLOR = const(2)
-    _BUFFER_BYTES_PER_PIXEL = const(_BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL)
-
     # @staticmethod
     # def set_bit_with_mask(v, mask, x):
     #     """Set bit with help of mask."""
@@ -172,118 +273,11 @@ class TLC59711:
     #     # Return the result, we're done.
     #     return v
 
-    ##########################################
-    # class _BC():
-    # BC-Data (3 x 7Bits = 21Bit).
-    #
-    # BCB 7bit;
-    # BCG 7bit;
-    # BCR 7bit;
-    _BC_CHIP_BUFFER_BIT_OFFSET = const(0)
-    _BC_BIT_COUNT = const(3 * 7)
-    # this holds the chip offset and
-    _BC_FIELDS = {
-        "BCR": {
-            "offset": 0,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCG": {
-            "offset": 7,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-        "BCB": {
-            "offset": 14,
-            "length": 7,
-            "mask": 0b01111111,
-        },
-    }
-
-    ##########################################
-    # class _FC():
-    # """
-    # Function Control Data (5 x 1Bit = 5Bit).
-    #
-    # OUTTMG 1bit
-    #     GS clock edge select
-    #     1 = rising edge
-    #     0 = falling edge
-    # EXTGCK 1bit
-    #     GS reference clock select
-    #     1 = SCKI clock
-    #     0 = internal oscillator
-    # TMGRST 1bit
-    #     display timing reset mode
-    #     1 = OUT forced of on latchpulse
-    #     0 = no forced reset
-    # DSPRPT 1bit
-    #     display repeat mode
-    #     1 = auto repeate
-    #     0 = Out only turned on after Blank or internal latchpulse
-    # BLANK 1bit;
-    #     ic power on sets this to 1
-    #     1 = blank (outputs off)
-    #     0 = Out on - controlled by GS-Data
-    # """
-
-    _FC_CHIP_BUFFER_BIT_OFFSET = const(_BC_BIT_COUNT)
-    _FC_BIT_COUNT = const(5)
-    _FC_FIELDS = {
-        "BLANK": {
-            "offset": 0,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "DSPRPT": {
-            "offset": 1,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "TMGRST": {
-            "offset": 2,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "EXTGCK": {
-            "offset": 3,
-            "length": 1,
-            "mask": 0b1,
-        },
-        "OUTTMG": {
-            "offset": 4,
-            "length": 1,
-            "mask": 0b1,
-        },
-    }
-
-    ##########################################
-    # class _WRITE_COMMAND():
-    # """WRITE_COMMAND."""
-
-    _WC_CHIP_BUFFER_BIT_OFFSET = const(_FC_BIT_COUNT + _BC_BIT_COUNT)
-    _WC_BIT_COUNT = const(6)
-    _WC_FIELDS = {
-        "WRITE_COMMAND": {
-            "offset": 0,
-            "length": 6,
-            "mask": 0b111111,
-        },
-    }
-    WRITE_COMMAND = const(0b100101)
-    ##########################################
-
-    ########
-    _CHIP_BUFFER_HEADER_BIT_COUNT = const(_WC_BIT_COUNT + _FC_BIT_COUNT + _BC_BIT_COUNT)
-    _CHIP_BUFFER_HEADER_BYTE_COUNT = const(_CHIP_BUFFER_HEADER_BIT_COUNT // 8)
-
-    ##########################################
-
     def __init__(self, spi, *, pixel_count=4):
         """Init."""
         self._spi = spi
         self.pixel_count = pixel_count
-        self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
+        self.channel_count = self.pixel_count * COLORS_PER_PIXEL
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 4
 
@@ -360,19 +354,19 @@ class TLC59711:
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._BC_FIELDS["BCR"],
+            field=_BC_FIELDS["BCR"],
             value=bcr,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._BC_FIELDS["BCG"],
+            field=_BC_FIELDS["BCG"],
             value=bcg,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_BC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._BC_FIELDS["BCB"],
+            field=_BC_FIELDS["BCB"],
             value=bcb,
         )
 
@@ -397,31 +391,31 @@ class TLC59711:
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["OUTTMG"],
+            field=_FC_FIELDS["OUTTMG"],
             value=self.outtmg,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["EXTGCK"],
+            field=_FC_FIELDS["EXTGCK"],
             value=self.extgck,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["TMGRST"],
+            field=_FC_FIELDS["TMGRST"],
             value=self.tmgrst,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["DSPRPT"],
+            field=_FC_FIELDS["DSPRPT"],
             value=self.dsprpt,
         )
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_FC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._FC_FIELDS["BLANK"],
+            field=_FC_FIELDS["BLANK"],
             value=self.blank,
         )
 
@@ -441,15 +435,15 @@ class TLC59711:
         self.set_chipheader_bits_in_buffer(
             chip_index=chip_index,
             part_bit_offset=_WC_CHIP_BUFFER_BIT_OFFSET,
-            field=self._WC_FIELDS["WRITE_COMMAND"],
-            value=self.WRITE_COMMAND,
+            field=_WC_FIELDS["WRITE_COMMAND"],
+            value=WRITE_COMMAND,
         )
 
     def _init_lookuptable(self):
         for channel_index in range(self.channel_count):
             buffer_index = (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR) * (
-                channel_index // self.CHANNEL_PER_CHIP
-            ) + channel_index % self.CHANNEL_PER_CHIP
+                channel_index // CHANNEL_PER_CHIP
+            ) + channel_index % CHANNEL_PER_CHIP
             buffer_index *= _BUFFER_BYTES_PER_COLOR
             buffer_index += _CHIP_BUFFER_HEADER_BYTE_COUNT
             self._buffer_index_lookuptable.append(buffer_index)
@@ -652,7 +646,7 @@ class TLC59711:
         # you can check with the tlc59711_multi_dev.py file.
         # most prominent this is visible at the set_pixel_all_16bit_value func:
         #  struct 157ms to 16ms (@144pixel on ItsyBitsy M4)
-        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        pixel_start = pixel_index * COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
         # struct.pack_into('>H', self._buffer, buffer_start, value_b)
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
@@ -689,7 +683,7 @@ class TLC59711:
         value_r = int(value_r * 65535)
         value_g = int(value_g * 65535)
         value_b = int(value_b * 65535)
-        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        pixel_start = pixel_index * COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_b & 0xFF
@@ -720,7 +714,7 @@ class TLC59711:
         # speed optimization: 140ms to 24ms (@144pixel on ItsyBitsy M4)
         # the `color = list(color)` is the key here! (don't ask me why..)
         color = list(color)
-        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        pixel_start = pixel_index * COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
         self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[2] & 0xFF
@@ -753,7 +747,7 @@ class TLC59711:
         color[0] = int(color[0] * 65535)
         color[1] = int(color[1] * 65535)
         color[2] = int(color[2] * 65535)
-        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        pixel_start = pixel_index * COLORS_PER_PIXEL
         buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
         self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[2] & 0xFF
@@ -780,10 +774,10 @@ class TLC59711:
             # convert to list
             value = list(value)
             # repr(value)
-            if len(value) != self.COLORS_PER_PIXEL:
+            if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
                     "length of value {} does not match COLORS_PER_PIXEL (= {})"
-                    "".format(len(value), self.COLORS_PER_PIXEL)
+                    "".format(len(value), COLORS_PER_PIXEL)
                 )
             # tested:
             # splitting up into variables to not need the list..
@@ -799,7 +793,7 @@ class TLC59711:
             # update buffer
             # we change channel order here:
             # buffer channel order is blue, green, red
-            # pixel_start = pixel_index * self.COLORS_PER_PIXEL
+            # pixel_start = pixel_index * COLORS_PER_PIXEL
             # buffer_start = self._buffer_index_lookuptable[pixel_start + 0]
             # self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
             # self._buffer[buffer_start + 1] = value[2] & 0xFF
@@ -858,7 +852,7 @@ class TLC59711:
             # temp = channel_index
             # we change channel order here:
             # buffer channel order is blue, green, red
-            pixel_index_offset = channel_index % self.COLORS_PER_PIXEL
+            pixel_index_offset = channel_index % COLORS_PER_PIXEL
             if pixel_index_offset == 0:
                 channel_index += 2
             elif pixel_index_offset == 2:
@@ -886,7 +880,7 @@ class TLC59711:
         Each value is a 16-bit number from 0-65535.
         """
         if 0 <= key < self.pixel_count:
-            pixel_start = key * self.COLORS_PER_PIXEL
+            pixel_start = key * COLORS_PER_PIXEL
             return (
                 self._get_channel_16bit_value(pixel_start + 0),
                 self._get_channel_16bit_value(pixel_start + 1),
@@ -911,10 +905,10 @@ class TLC59711:
         # comments look at set_pixel
         if 0 <= key < self.pixel_count:
             value = list(value)
-            if len(value) != self.COLORS_PER_PIXEL:
+            if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
                     "length of value {} does not match COLORS_PER_PIXEL (= {})"
-                    "".format(len(value), self.COLORS_PER_PIXEL)
+                    "".format(len(value), COLORS_PER_PIXEL)
                 )
             # _check_and_convert modifies value in place..
             self._check_and_convert(value)
