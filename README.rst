@@ -56,6 +56,11 @@ Usage Example
 
 See examples/tlc59711_simpletest.py for a demo of the usage.
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/tlc59711/en/latest/>`_.
+
 Contributing
 ============
 
