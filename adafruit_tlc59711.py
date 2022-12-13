@@ -802,7 +802,8 @@ class TLC59711:
             # repr(value)
             if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
-                    f"length of value {len(value)} does not match COLORS_PER_PIXEL (= {COLORS_PER_PIXEL})"
+                    f"length of value {len(value)} does not match COLORS_PER_PIXEL"
+                    " (= {COLORS_PER_PIXEL})"
                 )
             # tested:
             # splitting up into variables to not need the list..
@@ -932,7 +933,8 @@ class TLC59711:
             value = list(value)
             if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
-                    f"length of value {len(value)} does not match COLORS_PER_PIXEL (= {COLORS_PER_PIXEL})"
+                    f"length of value {len(value)} does not match COLORS_PER_PIXEL"
+                    " (= {COLORS_PER_PIXEL})"
                 )
             # _check_and_convert modifies value in place..
             self._check_and_convert(value)
