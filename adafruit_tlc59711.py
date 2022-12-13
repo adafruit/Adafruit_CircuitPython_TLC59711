@@ -1089,3 +1089,4 @@ class TLC59711AutoShow(TLC59711):
     b3 = _ChannelDirektAutoShow(9)
     g3 = _ChannelDirektAutoShow(10)
     r3 = _ChannelDirektAutoShow(11)
+
