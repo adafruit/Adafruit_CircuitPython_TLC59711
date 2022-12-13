@@ -49,6 +49,11 @@ import struct
 
 from micropython import const
 
+try:
+    from typing import Dict, List, Optional, Tuple
+    from busio import SPI
+except ImportError:
+    pass
 
 _CHIP_BUFFER_BYTE_COUNT = const(28)
 
@@ -174,11 +179,11 @@ class TLC59711:
     and the API is similar to the NeoPixel and DotStar Interfaces.
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
-        The clock and MOSI/outout must be set, the MISO/input is unused.
-        Maximal data clock frequence is:
+        The clock and MOSI/output must be set, the MISO/input is unused.
+        Maximal data clock frequency is:
         - TLC59711: 10MHz
         - TLC5971: 20MHz
-    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected. (default=4)
+    :param int pixel_count: Number of RGB-LEDs (=Pixels) that are connected. (default=4)
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -273,7 +278,7 @@ class TLC59711:
     #     # Return the result, we're done.
     #     return v
 
-    def __init__(self, spi, *, pixel_count=4):
+    def __init__(self, spi: SPI, *, pixel_count: int = 4) -> None:
         """Init."""
         self._spi = spi
         self.pixel_count = pixel_count
@@ -307,7 +312,7 @@ class TLC59711:
         self._buffer_index_lookuptable = []
         self._init_lookuptable()
 
-    def _init_buffer(self):
+    def _init_buffer(self) -> None:
         for chip_index in range(self.chip_count):
             # set Write Command (6Bit) WRCMD (fixed: 25h)
             self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
@@ -315,8 +320,13 @@ class TLC59711:
             self._chip_set_WriteCommand(chip_index)
 
     def set_chipheader_bits_in_buffer(
-        self, *, chip_index=0, part_bit_offset=0, field=None, value=0
-    ):
+        self,
+        *,
+        chip_index: int = 0,
+        part_bit_offset: int = 0,
+        field: Optional[Dict[str, int]] = None,
+        value: int = 0,
+    ) -> None:
         """Set chip header bits in buffer."""
         if field is None:
             field = {"mask": 0, "length": 0, "offset": 0}
@@ -341,7 +351,9 @@ class TLC59711:
 
     ##########################################
 
-    def chip_set_BCData(self, chip_index, bcr=127, bcg=127, bcb=127):
+    def chip_set_BCData(
+        self, chip_index: int, bcr: int = 127, bcg: int = 127, bcb: int = 127
+    ) -> None:
         """
         Set BC-Data.
 
@@ -370,7 +382,7 @@ class TLC59711:
             value=bcb,
         )
 
-    def update_BCData(self):
+    def update_BCData(self) -> None:
         """
         Update BC-Data for all Chips in Buffer.
 
@@ -379,7 +391,7 @@ class TLC59711:
         for chip_index in range(self.chip_count):
             self.chip_set_BCData(chip_index, bcr=self.bcr, bcg=self.bcg, bcb=self.bcb)
 
-    def _chip_set_FunctionControl(self, chip_index):
+    def _chip_set_FunctionControl(self, chip_index: int) -> None:
         """
         Set Function Control Bits in Buffer.
 
@@ -419,7 +431,7 @@ class TLC59711:
             value=self.blank,
         )
 
-    def update_fc(self):
+    def update_fc(self) -> None:
         """
         Update Function Control Bits for all Chips in Buffer.
 
@@ -429,7 +441,7 @@ class TLC59711:
         for chip_index in range(self.chip_count):
             self._chip_set_FunctionControl(chip_index)
 
-    def _chip_set_WriteCommand(self, chip_index):
+    def _chip_set_WriteCommand(self, chip_index: int) -> None:
         """Set WRITE_COMMAND."""
         # set all bits
         self.set_chipheader_bits_in_buffer(
@@ -439,7 +451,7 @@ class TLC59711:
             value=WRITE_COMMAND,
         )
 
-    def _init_lookuptable(self):
+    def _init_lookuptable(self) -> None:
         for channel_index in range(self.channel_count):
             buffer_index = (_CHIP_BUFFER_BYTE_COUNT // _BUFFER_BYTES_PER_COLOR) * (
                 channel_index // CHANNEL_PER_CHIP
@@ -450,7 +462,7 @@ class TLC59711:
 
     ##########################################
 
-    def _write(self):
+    def _write(self) -> None:
         # Write out the current state to the shift register.
         try:
             # Lock the SPI bus and configure it for the shift register.
@@ -462,14 +474,14 @@ class TLC59711:
             # Ensure the SPI bus is unlocked.
             self._spi.unlock()
 
-    def show(self):
+    def show(self) -> None:
         """Write out the current LED PWM state to the chip."""
         self._write()
 
     ##########################################
 
     @staticmethod
-    def calculate_Ioclmax(*, Riref=2.48):
+    def calculate_Ioclmax(*, Riref: float = 2.48) -> float:
         """
         Calculate Maximum Constant Sink Current Value.
 
@@ -481,22 +493,22 @@ class TLC59711:
         Ioclmax = (41 / Riref) * Viref
 
         :param float Riref: resistor value (kΩ) (default=20)
-        :return tuple: Ioclmax (mA)
+        :return float: Ioclmax (mA)
         """
         # Riref                 = (Viref / Ioclmax) * 41    | / 41
         # Riref / 41            = Viref / Ioclmax           | switch
         # 41 / Riref            = Ioclmax / Viref           | * Viref
         # (41 / Riref) * Viref  = Ioclmax
         if not 0.8 <= Riref <= 24.8:
-            raise ValueError("Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
+            raise ValueError(f"Riref {Riref} not in range: 0.8kΩ..25kΩ")
         Viref = 1.21
         Ioclmax = (41 / Riref) * Viref
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError("Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
+            raise ValueError(f"Ioclmax {Ioclmax} not in range: 2mA..60mA")
         return Ioclmax
 
     @staticmethod
-    def calculate_Riref(*, Ioclmax=20):
+    def calculate_Riref(*, Ioclmax: float = 20) -> float:
         """
         Calculate Maximum Constant Sink Current Value.
 
@@ -507,18 +519,20 @@ class TLC59711:
         Riref = (Viref / Ioclmax) * 41
 
         :param float Ioclmax: target max output current (mA) (default=20)
-        :return tuple: Riref (kΩ)
+        :return float: Riref (kΩ)
         """
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError("Ioclmax {} not in range: 2mA..60mA".format(Ioclmax))
+            raise ValueError(f"Ioclmax {Ioclmax} not in range: 2mA..60mA")
         Viref = 1.21
         Riref = (Viref / Ioclmax) * 41
         if not 0.8 <= Riref <= 24.8:
-            raise ValueError("Riref {} not in range: 0.8kΩ..25kΩ".format(Riref))
+            raise ValueError(f"Riref {Riref} not in range: 0.8kΩ..25kΩ")
         return Riref
 
     @staticmethod
-    def calculate_BCData(*, Ioclmax=18, IoutR=17, IoutG=15, IoutB=9):
+    def calculate_BCData(
+        *, Ioclmax: float = 18, IoutR: float = 17, IoutG: float = 15, IoutB: float = 9
+    ) -> Tuple[float, float, float]:
         """
         Calculate Global Brightness Control Values.
 
@@ -542,44 +556,44 @@ class TLC59711:
         # Iout / Ioclmax       =  BCX / 127              | * 127
         # Iout / Ioclmax * 127 =  BCX
         if not 2.0 <= Ioclmax <= 60.0:
-            raise ValueError("Ioclmax {} not in range: 2mA..60mA" "".format(Ioclmax))
+            raise ValueError(f"Ioclmax {Ioclmax} not in range: 2mA..60mA")
         if not 0.0 <= IoutR <= Ioclmax:
-            raise ValueError("IoutR {} not in range: 2mA..{}mA".format(IoutR, Ioclmax))
+            raise ValueError(f"IoutR {IoutR} not in range: 2mA..{Ioclmax}mA")
         if not 0.0 <= IoutG <= Ioclmax:
-            raise ValueError("IoutG {} not in range: 2mA..{}mA".format(IoutG, Ioclmax))
+            raise ValueError(f"IoutG {IoutG} not in range: 2mA..{Ioclmax}mA")
         if not 0.0 <= IoutB <= Ioclmax:
-            raise ValueError("IoutB {} not in range: 2mA..{}mA".format(IoutB, Ioclmax))
+            raise ValueError(f"IoutB {IoutB} not in range: 2mA..{Ioclmax}mA")
         bcr = int((IoutR / Ioclmax) * 127)
         bcg = int((IoutG / Ioclmax) * 127)
         bcb = int((IoutB / Ioclmax) * 127)
         if not 0 <= bcr <= 127:
-            raise ValueError("bcr {} not in range: 0..127".format(bcr))
+            raise ValueError(f"bcr {bcr} not in range: 0..127")
         if not 0 <= bcg <= 127:
-            raise ValueError("bcg {} not in range: 0..127".format(bcg))
+            raise ValueError(f"bcg {bcg} not in range: 0..127")
         if not 0 <= bcb <= 127:
-            raise ValueError("bcb {} not in range: 0..127".format(bcb))
+            raise ValueError(f"bcb {bcb} not in range: 0..127")
         return (bcr, bcg, bcb)
 
     ##########################################
 
     @staticmethod
-    def _convert_01_float_to_16bit_integer(value):
+    def _convert_01_float_to_16bit_integer(value: float) -> int:
         """Convert 0..1 Float Value to 16bit (0..65535) Range."""
         # check if value is in range
-        if not 0.0 <= value[0] <= 1.0:
-            raise ValueError("value[0] {} not in range: 0..1".format(value[0]))
+        if not 0.0 <= value <= 1.0:
+            raise ValueError(f"value[0] {value} not in range: 0..1")
         # convert to 16bit value
         return int(value * 65535)
 
     @classmethod
-    def _convert_if_float(cls, value):
+    def _convert_if_float(cls, value: float) -> int:
         """Convert if value is Float."""
         if isinstance(value, float):
             value = cls._convert_01_float_to_16bit_integer(value)
         return value
 
     @staticmethod
-    def _check_and_convert(value):
+    def _check_and_convert(value: List[int]):
         # loop
         # mega slow
         # for i, val in enumerate(value):
@@ -601,26 +615,26 @@ class TLC59711:
         if isinstance(value[0], float):
             # check if value is in range
             if not 0.0 <= value[0] <= 1.0:
-                raise ValueError("value[0] {} not in range: 0..1".format(value[0]))
+                raise ValueError(f"value[0] {value[0]} not in range: 0..1")
             # convert to 16bit value
             value[0] = int(value[0] * 65535)
         else:
             if not 0 <= value[0] <= 65535:
-                raise ValueError("value[0] {} not in range: 0..65535".format(value[0]))
+                raise ValueError(f"value[0] {value[0]} not in range: 0..65535")
         if isinstance(value[1], float):
             if not 0.0 <= value[1] <= 1.0:
-                raise ValueError("value[1] {} not in range: 0..1".format(value[1]))
+                raise ValueError(f"value[1] {value[1]} not in range: 0..1")
             value[1] = int(value[1] * 65535)
         else:
             if not 0 <= value[1] <= 65535:
-                raise ValueError("value[1] {} not in range: 0..65535".format(value[1]))
+                raise ValueError(f"value[1] {value[1]} not in range: 0..65535")
         if isinstance(value[2], float):
             if not 0.0 <= value[2] <= 1.0:
-                raise ValueError("value[2] {} not in range: 0..1".format(value[2]))
+                raise ValueError(f"value[2] {value[2]} not in range: 0..1")
             value[2] = int(value[2] * 65535)
         else:
             if not 0 <= value[2] <= 65535:
-                raise ValueError("value[2] {} not in range: 0..65535".format(value[2]))
+                raise ValueError(f"value[2] {value[2]} not in range: 0..65535")
 
     ##########################################
 
@@ -628,7 +642,9 @@ class TLC59711:
         buffer_start = self._buffer_index_lookuptable[channel_index]
         return struct.unpack_from(">H", self._buffer, buffer_start)[0]
 
-    def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
+    def set_pixel_16bit_value(
+        self, pixel_index: int, value_r: int, value_g: int, value_b: int
+    ) -> None:
         """
         Set the value for pixel.
 
@@ -660,7 +676,9 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
-    def set_pixel_float_value(self, pixel_index, value_r, value_g, value_b):
+    def set_pixel_float_value(
+        self, pixel_index: int, value_r: int, value_g: int, value_b: int
+    ) -> None:
         """
         Set the value for pixel.
 
@@ -694,7 +712,9 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
-    def set_pixel_16bit_color(self, pixel_index, color):
+    def set_pixel_16bit_color(
+        self, pixel_index: int, color: Tuple[int, int, int]
+    ) -> None:
         """
         Set color for pixel.
 
@@ -725,13 +745,15 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[0] & 0xFF
 
-    def set_pixel_float_color(self, pixel_index, color):
+    def set_pixel_float_color(
+        self, pixel_index: int, color: Tuple[float, float, float]
+    ) -> None:
         """
         Set color for pixel.
 
         This is a Fast UNPROTECTED function:
         no error / range checking is done.
-        its a little bit slower as `set_pixel_16bit_value`
+        it's a little bit slower as `set_pixel_16bit_value`
 
         :param int pixel_index: 0..(pixel_count)
         :param tuple/float color: 3-tuple of R, G, B;  0..1
@@ -758,11 +780,15 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[0] & 0xFF
 
-    def set_pixel(self, pixel_index, value):
+    def set_pixel(
+        self,
+        pixel_index: int,
+        value: Tuple[float, float, float],
+    ) -> None:
         """
         Set the R, G, B values for the pixel.
 
-        this funciton hase some advanced error checking.
+        this function hase some advanced error checking.
         it is much slower than the other provided 'bare' variants..
         but therefor gives clues to what is going wrong.. ;-)
 
@@ -776,8 +802,7 @@ class TLC59711:
             # repr(value)
             if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
-                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
-                    "".format(len(value), COLORS_PER_PIXEL)
+                    f"length of value {len(value)} does not match COLORS_PER_PIXEL (= {COLORS_PER_PIXEL})"
                 )
             # tested:
             # splitting up into variables to not need the list..
@@ -807,10 +832,12 @@ class TLC59711:
             self.set_pixel_16bit_value(pixel_index, value[0], value[1], value[2])
         else:
             raise IndexError(
-                "index {} out of range [0..{}]" "".format(pixel_index, self.pixel_count)
+                f"index {pixel_index} out of range [0..{self.pixel_count}]"
             )
 
-    def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
+    def set_pixel_all_16bit_value(
+        self, value_r: int, value_g: int, value_b: int
+    ) -> None:
         """
         Set the R, G, B values for all pixels.
 
@@ -823,22 +850,22 @@ class TLC59711:
         for i in range(self.pixel_count):
             self.set_pixel_16bit_value(i, value_r, value_g, value_b)
 
-    def set_pixel_all(self, color):
+    def set_pixel_all(self, color: Tuple[float, float, float]) -> None:
         """
         Set the R, G, B values for all pixels.
 
-        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        :param tuple color: 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
         for i in range(self.pixel_count):
             self.set_pixel(i, color)
 
-    def set_all_black(self):
+    def set_all_black(self) -> None:
         """Set all pixels to black."""
         for i in range(self.pixel_count):
             self.set_pixel_16bit_value(i, 0, 0, 0)
 
     # channel access
-    def set_channel(self, channel_index, value):
+    def set_channel(self, channel_index: int, value: int) -> None:
         """
         Set the value for the provided channel.
 
@@ -862,18 +889,16 @@ class TLC59711:
             struct.pack_into(">H", self._buffer, buffer_start, value)
         else:
             raise IndexError(
-                "channel_index {} out of range (0..{})".format(
-                    channel_index, self.channel_count
-                )
+                "channel_index {channel_index} out of range (0..{self.channel_count})"
             )
 
     # Define index and length properties to set and get each pixel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
-    def __len__(self):
+    def __len__(self) -> int:
         """Retrieve TLC5975 the total number of Pixels available."""
         return self.pixel_count
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int) -> Tuple[int, int, int]:
         """
         Retrieve the R, G, B values for the provided channel as a 3-tuple.
 
@@ -887,19 +912,19 @@ class TLC59711:
                 self._get_channel_16bit_value(pixel_start + 2),
             )
         # else:
-        raise IndexError("index {} out of range [0..{}]".format(key, self.pixel_count))
+        raise IndexError(f"index {key} out of range [0..{self.pixel_count}]")
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: Tuple[float, float, float]) -> None:
         """
         Set the R, G, B values for the pixel.
 
-        this funciton hase some advanced error checking.
+        this function has some advanced error checking.
         it is much slower than the other provided 'bare' variants..
         but therefor gives clues to what is going wrong.. ;-)
-        this shortcut is identicall to `set_pixel`
+        this shortcut is identical to `set_pixel`
 
         :param int key: 0..(pixel_count)
-        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        :param tuple value: 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
         # for a more detailed version with all the debugging code and
         # comments look at set_pixel
@@ -907,28 +932,25 @@ class TLC59711:
             value = list(value)
             if len(value) != COLORS_PER_PIXEL:
                 raise IndexError(
-                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
-                    "".format(len(value), COLORS_PER_PIXEL)
+                    f"length of value {len(value)} does not match COLORS_PER_PIXEL (= {COLORS_PER_PIXEL})"
                 )
             # _check_and_convert modifies value in place..
             self._check_and_convert(value)
             self.set_pixel_16bit_value(key, value[0], value[1], value[2])
         else:
-            raise IndexError(
-                "index {} out of range [0..{}]" "".format(key, self.pixel_count)
-            )
+            raise IndexError(f"index {key} out of range [0..{self.pixel_count}]")
 
     class _ChannelDirekt:
         # Internal decorator to simplify mapping.
 
-        def __init__(self, channel):
+        def __init__(self, channel) -> None:
             self._channel = channel
 
         def __get__(self, obj, obj_type):
             # Grab the 16-bit value at the offset for this channel.
             return obj._get_channel_16bit_value(self._channel)
 
-        def __set__(self, obj, value):
+        def __set__(self, obj, value) -> None:
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= value <= 65535
             obj.set_channel(self._channel, value)
@@ -965,27 +987,27 @@ class TLC59711AutoShow(TLC59711):
     this TLC59711AutoShow is a subclass of TLC59711 that adds automatically
     sending changed data to the chips.
     this creates very slows responses on big changes.
-    It is mainly usefull if you only have a very small number of pixels.
+    It is mainly useful if you only have a very small number of pixels.
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
-        The clock and MOSI/outout must be set, the MISO/input is unused.
-        Maximal data clock frequence is:
+        The clock and MOSI/output must be set, the MISO/input is unused.
+        Maximal data clock frequency is:
         - TLC59711: 10MHz
         - TLC5971: 20MHz
-    :param bool pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
+    :param int pixel_count: Number of RGB-LEDs (=Pixels) that are connected.
     """
 
-    def __init__(self, spi, pixel_count=4):
+    def __init__(self, spi: SPI, pixel_count: int = 4) -> None:
         """Init."""
         super().__init__(spi, pixel_count=pixel_count)
 
     ##########################################
 
-    def set_pixel(self, pixel_index, value):
+    def set_pixel(self, pixel_index: int, value: Tuple[float, float, float]) -> None:
         """
         Set the R, G, B values for the pixel.
 
-        this funciton hase some advanced error checking.
+        this function hase some advanced error checking.
         it is much slower than the other provided 'bare' variants..
         but therefor gives clues to what is going wrong.. ;-)
 
@@ -996,22 +1018,22 @@ class TLC59711AutoShow(TLC59711):
         super().set_pixel(pixel_index, value)
         self._write()
 
-    def set_pixel_all(self, color):
+    def set_pixel_all(self, color: Tuple[float, float, float]) -> None:
         """
         Set the R, G, B values for all pixels.
 
-        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        :param tuple color: 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
         super().set_pixel_all(color)
         self._write()
 
-    def set_all_black(self):
+    def set_all_black(self) -> None:
         """Set all pixels to black."""
         super().set_all_black()
         self._write()
 
     # channel access
-    def set_channel(self, channel_index, value):
+    def set_channel(self, channel_index: int, value: int) -> None:
         """
         Set the value for the provided channel.
 
@@ -1021,14 +1043,14 @@ class TLC59711AutoShow(TLC59711):
         super().set_channel(channel_index, value)
         self._write()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: Tuple[float, float, float]) -> None:
         """
         Set the R, G, B values for the pixel.
 
-        this funciton hase some advanced error checking.
+        this function hase some advanced error checking.
         it is much slower than the other provided 'bare' variants..
         but therefor gives clues to what is going wrong.. ;-)
-        this shortcut is identicall to `set_pixel`
+        this shortcut is identical to `set_pixel`
 
         :param int key: 0..(pixel_count)
         :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
@@ -1039,14 +1061,14 @@ class TLC59711AutoShow(TLC59711):
     class _ChannelDirektAutoShow:
         # Internal decorator to simplify mapping.
 
-        def __init__(self, channel):
+        def __init__(self, channel) -> None:
             self._channel = channel
 
         def __get__(self, obj, obj_type):
             # Grab the 16-bit value at the offset for this channel.
             return obj._get_channel_16bit_value(self._channel)
 
-        def __set__(self, obj, value):
+        def __set__(self, obj, value) -> None:
             # Set the 16-bit value at the offset for this channel.
             assert 0 <= value <= 65535
             obj.set_channel(self._channel, value)
