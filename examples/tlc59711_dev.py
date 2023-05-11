@@ -495,5 +495,4 @@ def test_main():
 # main loop
 
 if __name__ == "__main__":
-
     test_main()
