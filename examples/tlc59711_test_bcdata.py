@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # CircuitPython
 
 # SPDX-FileCopyrightText: 2021 s-light
@@ -59,16 +58,7 @@ def main_loop():
         pixels.bcr = BCValues[0]
         pixels.bcg = BCValues[1]
         pixels.bcb = BCValues[2]
-        print(
-            "bcr: {:>3}\n"
-            "bcg: {:>3}\n"
-            "bcb: {:>3}\n"
-            "".format(
-                pixels.bcr,
-                pixels.bcg,
-                pixels.bcb,
-            )
-        )
+        print(f"bcr: {pixels.bcr:>3}\n" f"bcg: {pixels.bcg:>3}\n" f"bcb: {pixels.bcb:>3}\n" "")
         pixels.update_BCData()
     pixels.show()
     # prepare new input
@@ -88,9 +78,9 @@ def test_main():
     pixels.set_pixel_all((5000, 5000, 5000))
     # calculate bc values
     Ioclmax = adafruit_tlc59711.TLC59711.calculate_Ioclmax(Riref=2.7)
-    print("Ioclmax = {}".format(Ioclmax))
+    print(f"Ioclmax = {Ioclmax}")
     Riref = adafruit_tlc59711.TLC59711.calculate_Riref(Ioclmax=Ioclmax)
-    print("Riref = {}".format(Riref))
+    print(f"Riref = {Riref}")
     BCValues = adafruit_tlc59711.TLC59711.calculate_BCData(
         Ioclmax=Ioclmax,
         IoutR=18,
@@ -98,7 +88,7 @@ def test_main():
         IoutB=13,
     )
     # (127, 77, 91)
-    print("BCValues = {}".format(BCValues))
+    print(f"BCValues = {BCValues}")
     pixels.bcr = BCValues[0]
     pixels.bcg = BCValues[1]
     pixels.bcb = BCValues[2]

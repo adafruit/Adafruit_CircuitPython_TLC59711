@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # CircuitPython
 
 # SPDX-FileCopyrightText: 2021 s-light
@@ -21,7 +20,6 @@ import board
 import busio
 
 import adafruit_tlc59711
-
 
 ##########################################
 PIXEL_COUNT = 16 * 1
@@ -107,13 +105,7 @@ def timeit_call(message, test_function, loop_count=1000):
     #     "".format((duration / loop_count) * 1000)
     # )
     # "{:>8.2f}ms".format(3.56)
-    print(
-        "{call_duration:>10.4f}ms\t{message}"
-        "".format(
-            call_duration=(duration / loop_count) * 1000,
-            message=message,
-        )
-    )
+    print(f"{(duration / loop_count) * 1000:>10.4f}ms\t{message}" "")
 
 
 def timeit_pixels_show():
@@ -162,24 +154,20 @@ def timeit_pixels_set_loop():
         for i in range(PIXEL_COUNT):
             pixels[i] = (500, 40500, 1000)
 
-    timeit_call(
-        "'pixels[0..{}] = (500, 40500, 1000)'".format(PIXEL_COUNT), _test, loop_count
-    )
+    timeit_call(f"'pixels[0..{PIXEL_COUNT}] = (500, 40500, 1000)'", _test, loop_count)
 
     def _test():
         for i in range(PIXEL_COUNT):
             pixels[i] = (0.1, 0.5, 0.9)
 
-    timeit_call(
-        "'pixels[0..{}] = (0.1, 0.5, 0.9)'".format(PIXEL_COUNT), _test, loop_count
-    )
+    timeit_call(f"'pixels[0..{PIXEL_COUNT}] = (0.1, 0.5, 0.9)'", _test, loop_count)
 
     def _test():
         for i in range(PIXEL_COUNT):
             pixels.set_pixel(i, (500, 40500, 1000))
 
     timeit_call(
-        "'pixels.set_pixel(0..{}, (500, 40500, 1000))'".format(PIXEL_COUNT),
+        f"'pixels.set_pixel(0..{PIXEL_COUNT}, (500, 40500, 1000))'",
         _test,
         loop_count,
     )
@@ -189,7 +177,7 @@ def timeit_pixels_set_loop():
             pixels.set_pixel(i, (0.1, 0.5, 0.9))
 
     timeit_call(
-        "'pixels.set_pixel(0..{}, (0.1, 0.5, 0.9))'".format(PIXEL_COUNT),
+        f"'pixels.set_pixel(0..{PIXEL_COUNT}, (0.1, 0.5, 0.9))'",
         _test,
         loop_count,
     )
@@ -213,9 +201,7 @@ def timeit_pixels_set_all():
     def _test():
         pixels.set_pixel_all_16bit_value(500, 40500, 1000)
 
-    timeit_call(
-        "'pixels.set_pixel_all_16bit_value(500, 40500, 1000)'", _test, loop_count
-    )
+    timeit_call("'pixels.set_pixel_all_16bit_value(500, 40500, 1000)'", _test, loop_count)
 
     def _test():
         pixels.set_all_black()
@@ -231,24 +217,19 @@ def timeit_pixels_set_16bit():
     def _test():
         pixels.set_pixel_16bit_value(3, 500, 40500, 1000)
 
-    timeit_call(
-        "'pixels.set_pixel_16bit_value(3, 500, 40500, 1000)'", _test, loop_count
-    )
+    timeit_call("'pixels.set_pixel_16bit_value(3, 500, 40500, 1000)'", _test, loop_count)
 
     def _test():
         pixels.set_pixel_16bit_color(3, (500, 40500, 1000))
 
-    timeit_call(
-        "'pixels.set_pixel_16bit_color(3, (500, 40500, 1000))'", _test, loop_count
-    )
+    timeit_call("'pixels.set_pixel_16bit_color(3, (500, 40500, 1000))'", _test, loop_count)
 
     def _test():
         for i in range(PIXEL_COUNT):
             pixels.set_pixel_16bit_value(i, 500, 40500, 1000)
 
     timeit_call(
-        "'pixels.set_pixel_16bit_value(0..{}, 500, 40500, 1000)'"
-        "".format(PIXEL_COUNT),
+        f"'pixels.set_pixel_16bit_value(0..{PIXEL_COUNT}, 500, 40500, 1000)'" "",
         _test,
         10,
     )
@@ -258,8 +239,7 @@ def timeit_pixels_set_16bit():
             pixels.set_pixel_16bit_color(i, (500, 40500, 1000))
 
     timeit_call(
-        "'pixels.set_pixel_16bit_color(0..{}, (500, 40500, 1000))'"
-        "".format(PIXEL_COUNT),
+        f"'pixels.set_pixel_16bit_color(0..{PIXEL_COUNT}, (500, 40500, 1000))'" "",
         _test,
         10,
     )
@@ -285,7 +265,7 @@ def timeit_pixels_set_float():
             pixels.set_pixel_float_value(i, 0.1, 0.5, 0.9)
 
     timeit_call(
-        "'pixels.set_pixel_float_value(0..{}, 0.1, 0.5, 0.9)'" "".format(PIXEL_COUNT),
+        f"'pixels.set_pixel_float_value(0..{PIXEL_COUNT}, 0.1, 0.5, 0.9)'" "",
         _test,
         10,
     )
@@ -295,20 +275,17 @@ def timeit_pixels_set_float():
             pixels.set_pixel_float_color(i, (0.1, 0.5, 0.9))
 
     timeit_call(
-        "'pixels.set_pixel_float_color(0..{}, (0.1, 0.5, 0.9))'" "".format(PIXEL_COUNT),
+        f"'pixels.set_pixel_float_color(0..{PIXEL_COUNT}, (0.1, 0.5, 0.9))'" "",
         _test,
         10,
     )
 
     def _test():
         for i in range(PIXEL_COUNT):
-            pixels.set_pixel_16bit_value(
-                i, int(0.1 * 65535), int(0.5 * 65535), int(0.9 * 65535)
-            )
+            pixels.set_pixel_16bit_value(i, int(0.1 * 65535), int(0.5 * 65535), int(0.9 * 65535))
 
     timeit_call(
-        "'pixels.set_pixel_16bit_value(0..{}, f2i 0.1, f2i 0.5, f2i 0.9)'"
-        "".format(PIXEL_COUNT),
+        f"'pixels.set_pixel_16bit_value(0..{PIXEL_COUNT}, f2i 0.1, f2i 0.5, f2i 0.9)'" "",
         _test,
         10,
     )
@@ -337,7 +314,7 @@ def timeit_channel_set():
         for i in range(channel_count):
             pixels.set_channel(i, 500)
 
-    timeit_call("'set_channel(for 0..{}, 10000)'" "".format(channel_count), _test, 10)
+    timeit_call(f"'set_channel(for 0..{channel_count}, 10000)'" "", _test, 10)
 
 
 def timeit_channel_set_internal():
@@ -384,7 +361,7 @@ def timeit_pixels_get():
     def _test():
         print("[", end="")
         for i in range(PIXEL_COUNT):
-            print("{}:{}, ".format(i, pixels[i]), end="")
+            print(f"{i}:{pixels[i]}, ", end="")
         print("]")
 
     timeit_call("'print('{}:{}, '.format(i, pixels[i]), end='')'", _test, 1)
@@ -415,21 +392,12 @@ def test_bcdata():
     pixels.set_pixel_all((100, 100, 100))
     pixels.show()
     time.sleep(2)
-    print(
-        "bcr: {:>3}\n"
-        "bcg: {:>3}\n"
-        "bcb: {:>3}\n"
-        "".format(
-            pixels.bcr,
-            pixels.bcg,
-            pixels.bcb,
-        )
-    )
+    print(f"bcr: {pixels.bcr:>3}\n" f"bcg: {pixels.bcg:>3}\n" f"bcb: {pixels.bcb:>3}\n" "")
     # calculate bc values
     Ioclmax = adafruit_tlc59711.TLC59711.calculate_Ioclmax(Riref=2.7)
-    print("Ioclmax = {}".format(Ioclmax))
+    print(f"Ioclmax = {Ioclmax}")
     Riref = adafruit_tlc59711.TLC59711.calculate_Riref(Ioclmax=Ioclmax)
-    print("Riref = {}".format(Riref))
+    print(f"Riref = {Riref}")
     BCValues = adafruit_tlc59711.TLC59711.calculate_BCData(
         Ioclmax=Ioclmax,
         IoutR=18,
@@ -437,7 +405,7 @@ def test_bcdata():
         IoutB=13,
     )
     # (127, 77, 91)
-    print("BCValues = {}".format(BCValues))
+    print(f"BCValues = {BCValues}")
 
     print("set bcX")
     pixels.bcr = BCValues[0]
@@ -445,16 +413,7 @@ def test_bcdata():
     pixels.bcb = BCValues[2]
     pixels.update_BCData()
     pixels.show()
-    print(
-        "bcr: {:>3}\n"
-        "bcg: {:>3}\n"
-        "bcb: {:>3}\n"
-        "".format(
-            pixels.bcr,
-            pixels.bcg,
-            pixels.bcb,
-        )
-    )
+    print(f"bcr: {pixels.bcr:>3}\n" f"bcg: {pixels.bcg:>3}\n" f"bcb: {pixels.bcb:>3}\n" "")
     time.sleep(2)
 
 

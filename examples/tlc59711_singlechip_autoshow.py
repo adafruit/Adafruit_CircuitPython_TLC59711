@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # CircuitPython
 
 # SPDX-FileCopyrightText: 2021 s-light
