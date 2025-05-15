@@ -30,19 +30,18 @@ Implementation Notes
 * Adafruit CircuitPython firmware for the supported boards:
   https://circuitpython.org/downloads
 """
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_TLC59711.git"
 
 
 # pylint - globally disable
 # 'invalid-name' check to allow for datasheet conform short channel and register names.
-# pylint: disable=invalid-name
 # 'too-many-lines' with the extra class and the api backwards compatibel things i have ~1100 lines..
 # and as it was wished to not alter the .pylint file to limit to 1100 i disable it here..
 # and yes - this code is very detailed commented. but i think that this is a good thing -
 # as hopefully this way it is easier to understand desicions &
 # what is going on and learn the backgrounds..
-# pylint: disable=too-many-lines
 
 
 import struct
@@ -51,6 +50,7 @@ from micropython import const
 
 try:
     from typing import Dict, List, Optional, Tuple
+
     from busio import SPI
 except ImportError:
     pass
@@ -186,7 +186,6 @@ class TLC59711:
     :param int pixel_count: Number of RGB-LEDs (=Pixels) that are connected. (default=4)
     """
 
-    # pylint: disable=too-many-instance-attributes
     # it just does make senes to have the chip params as attributes.
 
     # """
@@ -618,23 +617,20 @@ class TLC59711:
                 raise ValueError(f"value[0] {value[0]} not in range: 0..1")
             # convert to 16bit value
             value[0] = int(value[0] * 65535)
-        else:
-            if not 0 <= value[0] <= 65535:
-                raise ValueError(f"value[0] {value[0]} not in range: 0..65535")
+        elif not 0 <= value[0] <= 65535:
+            raise ValueError(f"value[0] {value[0]} not in range: 0..65535")
         if isinstance(value[1], float):
             if not 0.0 <= value[1] <= 1.0:
                 raise ValueError(f"value[1] {value[1]} not in range: 0..1")
             value[1] = int(value[1] * 65535)
-        else:
-            if not 0 <= value[1] <= 65535:
-                raise ValueError(f"value[1] {value[1]} not in range: 0..65535")
+        elif not 0 <= value[1] <= 65535:
+            raise ValueError(f"value[1] {value[1]} not in range: 0..65535")
         if isinstance(value[2], float):
             if not 0.0 <= value[2] <= 1.0:
                 raise ValueError(f"value[2] {value[2]} not in range: 0..1")
             value[2] = int(value[2] * 65535)
-        else:
-            if not 0 <= value[2] <= 65535:
-                raise ValueError(f"value[2] {value[2]} not in range: 0..65535")
+        elif not 0 <= value[2] <= 65535:
+            raise ValueError(f"value[2] {value[2]} not in range: 0..65535")
 
     ##########################################
 
@@ -712,9 +708,7 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
-    def set_pixel_16bit_color(
-        self, pixel_index: int, color: Tuple[int, int, int]
-    ) -> None:
+    def set_pixel_16bit_color(self, pixel_index: int, color: Tuple[int, int, int]) -> None:
         """
         Set color for pixel.
 
@@ -745,9 +739,7 @@ class TLC59711:
         self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[0] & 0xFF
 
-    def set_pixel_float_color(
-        self, pixel_index: int, color: Tuple[float, float, float]
-    ) -> None:
+    def set_pixel_float_color(self, pixel_index: int, color: Tuple[float, float, float]) -> None:
         """
         Set color for pixel.
 
@@ -832,13 +824,9 @@ class TLC59711:
             # simpliefy code
             self.set_pixel_16bit_value(pixel_index, value[0], value[1], value[2])
         else:
-            raise IndexError(
-                f"index {pixel_index} out of range [0..{self.pixel_count}]"
-            )
+            raise IndexError(f"index {pixel_index} out of range [0..{self.pixel_count}]")
 
-    def set_pixel_all_16bit_value(
-        self, value_r: int, value_g: int, value_b: int
-    ) -> None:
+    def set_pixel_all_16bit_value(self, value_r: int, value_g: int, value_b: int) -> None:
         """
         Set the R, G, B values for all pixels.
 
@@ -889,9 +877,7 @@ class TLC59711:
             buffer_start = self._buffer_index_lookuptable[channel_index]
             struct.pack_into(">H", self._buffer, buffer_start, value)
         else:
-            raise IndexError(
-                "channel_index {channel_index} out of range (0..{self.channel_count})"
-            )
+            raise IndexError("channel_index {channel_index} out of range (0..{self.channel_count})")
 
     # Define index and length properties to set and get each pixel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.

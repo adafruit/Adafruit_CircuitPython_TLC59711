@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # CircuitPython
 
 # SPDX-FileCopyrightText: 2021 s-light
@@ -25,7 +24,6 @@ import board
 import busio
 
 import adafruit_tlc59711
-
 
 ##########################################
 PIXEL_COUNT = 16
@@ -72,7 +70,7 @@ def test_main():
         IoutG=11,
         IoutB=13,
     )
-    print("bcvalues = {}".format(bcvalues))
+    print(f"bcvalues = {bcvalues}")
     pixels.bcr = bcvalues[0]
     pixels.bcg = bcvalues[1]
     pixels.bcb = bcvalues[2]

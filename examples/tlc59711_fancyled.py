@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # CircuitPython
 
 # SPDX-FileCopyrightText: 2021 s-light
@@ -15,11 +14,10 @@ this is an example for combining the TLC5957 library with FancyLED.
 Enjoy the colors :-)
 """
 
+import adafruit_fancyled.adafruit_fancyled as fancyled
 import board
-
 import busio
 
-import adafruit_fancyled.adafruit_fancyled as fancyled
 import adafruit_tlc59711
 
 ##########################################
