@@ -333,7 +333,7 @@ class TLC59711:
         # restrict value
         value &= field["mask"]
         # move value to position
-        value = value << offset
+        value <<= offset
         # calculate header start
         header_start = chip_index * _CHIP_BUFFER_BYTE_COUNT
         # get chip header

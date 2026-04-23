@@ -58,7 +58,7 @@ def main_loop():
         pixels.bcr = BCValues[0]
         pixels.bcg = BCValues[1]
         pixels.bcb = BCValues[2]
-        print(f"bcr: {pixels.bcr:>3}\n" f"bcg: {pixels.bcg:>3}\n" f"bcb: {pixels.bcb:>3}\n" "")
+        print(f"bcr: {pixels.bcr:>3}\nbcg: {pixels.bcg:>3}\nbcb: {pixels.bcb:>3}\n")
         pixels.update_BCData()
     pixels.show()
     # prepare new input
